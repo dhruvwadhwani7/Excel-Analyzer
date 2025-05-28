@@ -1,3 +1,7 @@
+# Excel Analyzer Frontend
+
+This is the frontend portion of the Excel Analyzer project. For complete documentation, please refer to the [main README](../README.md) in the project root.
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
