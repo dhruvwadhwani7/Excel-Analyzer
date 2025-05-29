@@ -97,5 +97,5 @@ excel-analyzer/
 This project is licensed under the MIT License - see the LICENSE file for details
 
 ## Contact
-Your Name - your.email@example.com
+Your Name - dhruvwadhwani77277@gmail.com
 Project Link: [https://github.com/yourusername/excel-analyzer](https://github.com/yourusername/excel-analyzer)
