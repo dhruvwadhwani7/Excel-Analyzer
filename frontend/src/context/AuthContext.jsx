@@ -4,23 +4,35 @@ const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check sessionStorage first
-    const sessionUser = JSON.parse(sessionStorage.getItem('userData'))
-    if (sessionUser) {
-      setUser(sessionUser)
-      return
+    const initializeAuth = () => {
+      // Try to get auth data from sessionStorage first
+      const sessionUser = JSON.parse(sessionStorage.getItem('userData'))
+      const sessionToken = sessionStorage.getItem('userToken')
+      
+      if (sessionUser && sessionToken) {
+        setUser(sessionUser)
+        setLoading(false)
+        return
+      }
+
+      // If not in session, check localStorage
+      const localUser = JSON.parse(localStorage.getItem('userData'))
+      const localToken = localStorage.getItem('userToken')
+      
+      if (localUser && localToken) {
+        // Restore to session storage
+        sessionStorage.setItem('userData', JSON.stringify(localUser))
+        sessionStorage.setItem('userToken', localToken)
+        setUser(localUser)
+      }
+      
+      setLoading(false)
     }
 
-    // If not in session, check localStorage
-    const localUser = JSON.parse(localStorage.getItem('userData'))
-    if (localUser) {
-      // If found in localStorage, also set in sessionStorage
-      sessionStorage.setItem('userData', JSON.stringify(localUser))
-      sessionStorage.setItem('userToken', localStorage.getItem('userToken'))
-      setUser(localUser)
-    }
+    initializeAuth()
   }, [])
 
   const login = (userData, token, rememberMe) => {
@@ -62,8 +74,14 @@ export const AuthProvider = ({ children }) => {
     setUser(updatedData)
   }
 
+  if (loading) {
+    return <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="text-white">Loading...</div>
+    </div>
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser, loading }}>
       {children}
     </AuthContext.Provider>
   )

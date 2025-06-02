@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/AuthContext'
 
 const Login = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [rememberMe, setRememberMe] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({ identifier: '', password: '' })
-  const navigate = useNavigate()
   const { login } = useAuth()
 
   const handleSubmit = async (e) => {
@@ -25,7 +26,14 @@ const Login = () => {
       if (data.success) {
         login(data.user, data.token, rememberMe)
         toast.success('Successfully logged in!')
-        navigate('/')
+
+        // Handle redirect
+        const redirectUrl =
+          location.state?.from ||
+          sessionStorage.getItem('redirectUrl') ||
+          '/'
+        sessionStorage.removeItem('redirectUrl') // Clean up
+        navigate(redirectUrl)
       } else {
         throw new Error(data.message)
       }
@@ -37,71 +45,102 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
-        <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900">
-            Sign in to your account
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <input
-                type="text"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email or Phone number"
-                value={formData.identifier}
-                onChange={(e) =>
-                  setFormData({ ...formData, identifier: e.target.value })
-                }
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Enter email or 10-digit phone number
-              </p>
+    <div className="relative bg-[#020617]">
+      <div className="absolute inset-0 bg-gradient-to-b from-[#be185d]/20 to-transparent opacity-90 animate-gradient" />
+      
+      <div className="relative min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 animate-fadeIn">
+        <div className="max-w-md w-full space-y-8">
+          <div className="bg-[#0f172a] rounded-xl shadow-lg shadow-[#be185d]/10 p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
+              <p className="mt-2 text-gray-400">Sign in to your account</p>
             </div>
-            <div>
-              <input
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-              />
-            </div>
-          </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-sm text-gray-900"
+            <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="identifier" className="text-white text-sm font-medium mb-1 block">Email or Phone number</label>
+                  <input
+                    id="identifier"
+                    type="text"
+                    required
+                    className="w-full px-4 py-3 rounded-lg bg-[#1e293b] text-white border-none focus:ring-2 focus:ring-[#be185d]"
+                    placeholder="Enter your email or phone"
+                    value={formData.identifier}
+                    onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="password" className="text-white text-sm font-medium mb-1 block">Password</label>
+                  <input
+                    id="password"
+                    type="password"
+                    required
+                    className="w-full px-4 py-3 rounded-lg bg-[#1e293b] text-white border-none focus:ring-2 focus:ring-[#be185d]"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 bg-[#1e293b] border-none rounded focus:ring-[#be185d] text-[#be185d]"
+                />
+                <label htmlFor="remember-me" className="ml-2 text-sm text-gray-400">
+                  Remember me
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full px-4 py-3 bg-[#be185d] text-white rounded-lg font-medium 
+                hover:bg-[#be185d]/90 transition-all duration-300 transform hover:scale-105 
+                hover:shadow-lg hover:shadow-[#be185d]/20"
+                disabled={isLoading}
               >
-                Remember me
-              </label>
-            </div>
-          </div>
+                {isLoading ? 'Signing in...' : 'Sign in'}
+              </button>
 
-          <button
-            type="submit"
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Signing in...' : 'Sign in'}
-          </button>
-        </form>
+              <div className="text-center mt-4">
+                <p className="text-gray-400">
+                  Don't have an account?{' '}
+                  <Link to="/register" className="text-[#be185d] hover:text-[#be185d]/80">
+                    Create one now
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
+
+      <style jsx>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 15s ease infinite;
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
     </div>
   )
 }
