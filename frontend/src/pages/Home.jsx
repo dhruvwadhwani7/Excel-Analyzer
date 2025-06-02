@@ -5,10 +5,15 @@ const Home = () => {
   const navigate = useNavigate();
 
   const handleUploadClick = () => {
-    toast.info('Please sign in to upload files', {
-      position: 'top-center',
-    });
-    navigate('/login');
+    const userToken = sessionStorage.getItem('userToken');
+    if (userToken) {
+      navigate('/dashboard');
+    } else {
+      toast.info('Please sign in to upload files', {
+        position: 'top-center',
+      });
+      navigate('/login');
+    }
   };
 
   return (
