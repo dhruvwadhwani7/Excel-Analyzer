@@ -1,36 +1,79 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import Navbar from './components/Navbar'
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Profile from './pages/Profile'
+import Dashboard from './pages/Dashboard'
+import Upload from './pages/Upload'
+import { useEffect } from 'react'
+
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth()
+  const location = useLocation()
+
+  useEffect(() => {
+    // Save the attempted URL
+    if (!user && !loading) {
+      sessionStorage.setItem('redirectUrl', location.pathname)
+    }
+  }, [user, loading, location])
+
+  if (loading) {
+    return <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="text-white">Loading...</div>
+    </div>
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location.pathname }} />
+  }
+
+  return children
+}
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8">
-      <div className="flex gap-8 mb-8">
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="h-24 hover:drop-shadow-[0_0_2em_#646cffaa]" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="h-24 hover:drop-shadow-[0_0_2em_#61dafbaa] animate-spin-slow" alt="React logo" />
-        </a>
-      </div>
-      <h1 className="text-5xl font-bold mb-8">Vite + React</h1>
-      <div className="p-8">
-        <button
-          onClick={() => setCount((count) => count + 1)}
-          className="rounded-lg border border-transparent px-4 py-2 bg-slate-800 hover:border-purple-500 transition-colors"
-        >
-          count is {count}
-        </button>
-        <p className="mt-4">
-          Edit <code className="font-mono bg-slate-800 px-2 py-1 rounded">src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="text-gray-400 mt-4">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-[#020617]">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/upload"
+              element={
+                <ProtectedRoute>
+                  <Upload />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+          <ToastContainer position="bottom-right" autoClose={3000} />
+        </div>
+      </Router>
+    </AuthProvider>
   )
 }
 
