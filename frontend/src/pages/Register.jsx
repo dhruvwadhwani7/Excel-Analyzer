@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { toast } from 'react-toastify'
+import { toast } from 'react-toastify';
+import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -11,7 +12,7 @@ const Register = () => {
   })
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-
+  const { register: authRegister } = useAuth();
   const validatePhoneNumber = (number) => {
     const phoneRegex = /^[6-9]\d{9}$/;
     return phoneRegex.test(number);
@@ -19,7 +20,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!validatePhoneNumber(formData.phoneNumber)) {
       toast.error('Please enter a valid Indian phone number');
       return;
@@ -39,9 +40,11 @@ const Register = () => {
       })
 
       const data = await response.json()
-      if (data.success) {
-        toast.success('Successfully registered!')
-        navigate('/login')
+      if (data.success && data.user && data.token) {
+        authRegister(data.user, data.token, true);
+        toast.success('Successfully registered!');
+        navigate('/dashboard');
+
       } else {
         throw new Error(data.message)
       }
@@ -55,7 +58,7 @@ const Register = () => {
   return (
     <div className="relative bg-[#020617]">
       <div className="absolute inset-0 bg-gradient-to-b from-[#be185d]/20 to-transparent opacity-90 animate-gradient" />
-      
+
       <div className="relative min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 animate-fadeIn">
         <div className="max-w-md w-full space-y-8">
           <div className="bg-[#0f172a] rounded-xl shadow-lg shadow-[#be185d]/10 p-8">
