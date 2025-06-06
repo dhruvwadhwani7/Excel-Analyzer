@@ -105,12 +105,17 @@ const Dashboard = () => {
       <div className="bg-[#0f172a] rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white font-bold">Recent Charts</h3>
-          <FaChartLine className="text-[#be185d]" />
+          <button 
+            onClick={() => navigate('/profile#chart-history')}
+            className="text-[#be185d] hover:text-[#be185d]/80 text-sm"
+          >
+            View All →
+          </button>
         </div>
         <div className="space-y-2">
-          {chartStats?.recentCharts?.map(chart => (
-            <div key={chart._id} className="text-sm">
-              <p className="text-white font-medium">{chart.title}</p>
+          {chartStats?.recentCharts?.slice(0, 3).map(chart => (
+            <div key={chart._id} className="text-sm group hover:bg-[#1e293b] p-2 rounded-lg transition-all">
+              <p className="text-white font-medium group-hover:text-[#be185d] transition-colors">{chart.title || 'Untitled Chart'}</p>
               <p className="text-gray-400">
                 {chart.dimension.toUpperCase()} - {chart.chartType}
                 <br />
@@ -118,6 +123,9 @@ const Dashboard = () => {
               </p>
             </div>
           ))}
+          {(!chartStats?.recentCharts || chartStats.recentCharts.length === 0) && (
+            <p className="text-gray-400 text-center py-2">No charts created yet</p>
+          )}
         </div>
       </div>
     </div>
@@ -353,7 +361,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white">Recent Uploads</h2>
           <button 
-            onClick={() => navigate('/profile')}
+            onClick={() => navigate('/profile#upload-history')}
             className="text-[#be185d] hover:text-[#be185d]/80 text-sm"
           >
             View All →

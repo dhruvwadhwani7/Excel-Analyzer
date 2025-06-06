@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { FaList, FaThLarge, FaSearch, FaFileCsv, FaFileExcel, FaTrash, FaCheck, FaTimes, FaChartBar, FaChartPie, FaChartLine, FaEye } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 
@@ -19,6 +19,10 @@ const Profile = () => {
   const [previewModal, setPreviewModal] = useState({ show: false, fileData: null });
   const [previewLoading, setPreviewLoading] = useState(false);
   const [error, setError] = useState(null);
+  const chartSectionRef = useRef(null);
+  const uploadSectionRef = useRef(null);
+  const [highlightCharts, setHighlightCharts] = useState(false);
+  const [highlightUploads, setHighlightUploads] = useState(false);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -62,6 +66,34 @@ const Profile = () => {
     };
 
     fetchCharts();
+  }, []);
+
+  useEffect(() => {
+    // Check for both upload and chart history hash
+    if (window.location.hash === '#upload-history') {
+      setHighlightUploads(true);
+      uploadSectionRef.current?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+      const timer = setTimeout(() => setHighlightUploads(false), 2000);
+      return () => clearTimeout(timer);
+    } else if (window.location.hash === '#chart-history') {
+      setHighlightCharts(true);
+      
+      // Scroll to chart section
+      chartSectionRef.current?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+
+      // Remove highlight after animation
+      const timer = setTimeout(() => {
+        setHighlightCharts(false);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const handleSubmit = async () => {
@@ -320,8 +352,14 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Upload History Section */}
-      <div className="max-w-7xl mx-auto">
+      {/* Upload History Section - Modified */}
+      <div 
+        ref={uploadSectionRef}
+        id="upload-history"
+        className={`max-w-7xl mx-auto transition-all duration-500 ${
+          highlightUploads ? 'ring-4 ring-[#be185d] rounded-lg animate-pulse' : ''
+        }`}
+      >
         <div className="bg-[#0f172a] rounded-lg shadow-lg p-6">
           <div className="flex flex-col mb-6">
             <div className="flex items-center justify-between">
@@ -495,7 +533,13 @@ const Profile = () => {
       </div>
 
       {/* Chart History Section */}
-      <div className="max-w-7xl mx-auto mt-8">
+      <div 
+        ref={chartSectionRef}
+        id="chart-history"
+        className={`max-w-7xl mx-auto mt-8 transition-all duration-500 ${
+          highlightCharts ? 'ring-4 ring-[#be185d] rounded-lg animate-pulse' : ''
+        }`}
+      >
         <div className="bg-[#0f172a] rounded-lg shadow-lg p-6">
           <div className="flex flex-col mb-6">
             <div className="flex items-center justify-between">
