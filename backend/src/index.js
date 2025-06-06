@@ -10,6 +10,8 @@ const xlsx = require('xlsx');
 const fs = require('fs');
 const File = require('./models/File');
 const Chart = require('./models/Chart');
+const { getISTTime, formatISTDate, getExpiryTime } = require('./utils/timeUtils');
+const setupMongoDB = require('./config/mongodb');
 
 const app = express();
 
@@ -21,8 +23,14 @@ app.use(cors({
 
 app.use(express.json());
 
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
+// Initialize TTL cleanup after MongoDB connection
+setupMongoDB()
+  .then(async () => {
+    console.log('Connected to MongoDB');
+    const File = require('./models/File');
+    await File.setupTTLCleanup();
+    console.log('File TTL cleanup initialized');
+  })
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Auth routes
@@ -246,7 +254,41 @@ app.get('/api/files/:fileId/data', protect, async (req, res) => {
   }
 });
 
-// Add new endpoint for file statistics
+// Update the chart expiry endpoint
+app.get('/api/charts/:chartId/expiry', protect, async (req, res) => {
+  try {
+    const chart = await Chart.findOne({ 
+      _id: req.params.chartId,
+      userId: req.user._id 
+    });
+
+    if (!chart) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chart not found'
+      });
+    }
+
+    const createdAtIST = getISTTime(chart.createdAt);
+    const expiryTime = getExpiryTime(chart.createdAt);
+    const now = getISTTime(new Date());
+    const remainingTime = expiryTime - now;
+
+    res.json({
+      success: true,
+      data: {
+        createdAt: formatISTDate(chart.createdAt),
+        expiryTime: formatISTDate(expiryTime),
+        remainingTime,
+        isExpired: remainingTime <= 0
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Update file stats endpoint to include IST times
 app.get('/api/files/stats', protect, async (req, res) => {
   try {
     const files = await File.find({ userId: req.user._id });
@@ -269,7 +311,7 @@ app.get('/api/files/stats', protect, async (req, res) => {
         fileName: file.fileName,
         fileType: file.fileType,
         status: file.status,
-        uploadDate: file.uploadDate,
+        uploadDate: formatISTDate(file.uploadDate),
         size: file.fileSize
       }))
     };

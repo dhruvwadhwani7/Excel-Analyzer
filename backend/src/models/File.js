@@ -38,8 +38,8 @@ const fileSchema = new mongoose.Schema({
   },
   uploadDate: {
     type: Date,
-    default: Date.now,
-    expires: 43200 // 12 hours in seconds (12 * 60 * 60)
+    default: () => new Date(Date.now() + (5.5 * 60 * 60 * 1000)), // Add IST offset
+    expires: 43200 // 12 hours in seconds
   },
   status: {
     type: String,
@@ -52,8 +52,11 @@ const fileSchema = new mongoose.Schema({
   }
 });
 
-// Ensure TTL index is created
-fileSchema.index({ uploadDate: 1 }, { expireAfterSeconds: 43200 });
+// Update TTL index with correct expiry time
+fileSchema.index({ uploadDate: 1 }, { 
+  expireAfterSeconds: 43200,
+  background: true 
+});
 
 // Index for faster queries
 fileSchema.index({ userId: 1, uploadDate: -1 });
@@ -65,5 +68,39 @@ fileSchema.pre('deleteOne', { document: true }, function(next) {
   }
   next();
 });
+
+// Add post-remove hook to delete associated charts
+fileSchema.post('deleteOne', { document: true }, async function(doc) {
+  try {
+    const Chart = require('./Chart');
+    await Chart.deleteMany({ fileId: doc._id });
+  } catch (error) {
+    console.error('Error deleting associated charts:', error);
+  }
+});
+
+// Add post-TTL hook using change streams for automatic cleanup
+fileSchema.statics.setupTTLCleanup = async function() {
+  try {
+    const Chart = require('./Chart');
+    const collection = this.collection;
+    const changeStream = collection.watch([{ $match: { operationType: 'delete' } }]);
+    
+    changeStream.on('change', async (change) => {
+      try {
+        await Chart.deleteMany({ fileId: change.documentKey._id });
+      } catch (error) {
+        console.error('Error in TTL cleanup:', error);
+      }
+    });
+  } catch (error) {
+    console.error('Error setting up TTL cleanup:', error);
+  }
+};
+
+// Add a method to get IST time
+fileSchema.methods.getISTTime = function() {
+  return new Date(this.uploadDate.getTime() + (5.5 * 60 * 60 * 1000));
+};
 
 module.exports = mongoose.model('File', fileSchema);

@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import { FaSpinner } from 'react-icons/fa';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
+import { getChartConfig } from '../utils/chartUtils';
 
 const Analytics = () => {
   const { user } = useAuth();
@@ -99,6 +100,7 @@ const Analytics = () => {
         <>
           <option value="bar">Bar Chart</option>
           <option value="line">Line Chart</option>
+          <option value="area">Area Chart</option>
           <option value="pie">Pie Chart</option>
         </>
       );
@@ -162,6 +164,7 @@ const Analytics = () => {
     return { scene, camera, renderer, controls, labelRenderer };
   };
 
+  // Modify the create3DAxisLabels function
   const create3DAxisLabels = (scene, size, labels) => {
     const { xLabel, yLabel, zLabel } = labels;
     const axisLength = size;
@@ -202,37 +205,39 @@ const Analytics = () => {
     yzPlane.position.set(0, planeSize/4, planeSize/4);
     scene.add(yzPlane);
 
-    // Create axis labels with better visibility
+    // Create axis labels with enhanced visibility
     const createAxisLabel = (text, position, color) => {
       const div = document.createElement('div');
-      div.className = 'px-2 py-1 rounded text-sm font-bold';
+      div.className = 'px-3 py-2 rounded-lg text-sm font-bold shadow-lg';
       div.style.backgroundColor = color;
       div.style.color = 'white';
-      div.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
+      div.style.textShadow = '1px 1px 2px rgba(0,0,0,0.7)';
+      div.style.whiteSpace = 'nowrap';
+      div.style.pointerEvents = 'none';
       div.textContent = text;
       const label = new CSS2DObject(div);
       label.position.copy(position);
       return label;
     };
 
-    // Add enhanced axis labels
+    // Add enhanced axis labels with better colors
     scene.add(createAxisLabel(
-      `X: ${xLabel}`,
+      `${xLabel}`,
       new THREE.Vector3(axisLength + 2, 0, 0),
-      '#ff4444'
+      'rgba(190, 24, 93, 0.9)' // Pink
     ));
     
     scene.add(createAxisLabel(
-      `Y: ${yLabel}`,
+      `${yLabel}`,
       new THREE.Vector3(0, axisLength + 2, 0),
-      '#44ff44'
+      'rgba(59, 130, 246, 0.9)' // Blue
     ));
 
     if (zLabel) {
       scene.add(createAxisLabel(
-        `Z: ${zLabel}`,
+        `${zLabel}`,
         new THREE.Vector3(0, 0, axisLength + 2),
-        '#4444ff'
+        'rgba(16, 185, 129, 0.9)' // Green
       ));
     }
 
@@ -264,32 +269,48 @@ const Analytics = () => {
   };
 
   // Add this new function for 2D charts
-  const setupChartTooltip = () => {
+  const setupChartTooltip = useCallback(() => {
     return {
       plugins: {
         tooltip: {
-          enabled: false, // Disable default tooltip
-        },
-      },
-      onHover: (event, elements) => {
-        if (elements && elements.length > 0) {
-          const element = elements[0];
-          const tooltipEl = tooltipRef.current;
-          if (tooltipEl) {
-            tooltipEl.style.display = 'block';
-            tooltipEl.style.left = `${event.native.clientX}px`;
-            tooltipEl.style.top = `${event.native.clientY}px`;
-            setHoveredLabel(`${element.element.$context.raw.x}: ${element.element.$context.raw.y}`);
+          enabled: false,
+          external: (context) => {
+            const tooltipEl = tooltipRef.current;
+            if (!tooltipEl) return;
+
+            if (context.tooltip.opacity === 0) {
+              tooltipEl.style.display = 'none';
+              return;
+            }
+
+            const position = context.chart.canvas.getBoundingClientRect();
+            if (context.tooltip.body) {
+              const bodyLines = context.tooltip.body.map(b => b.lines);
+              tooltipEl.style.display = 'block';
+              tooltipEl.style.left = position.left + context.tooltip.caretX + 'px';
+              tooltipEl.style.top = position.top + context.tooltip.caretY + 'px';
+              setHoveredLabel(bodyLines.flat().join('\n'));
+            }
           }
-        } else {
-          if (tooltipRef.current) {
-            tooltipRef.current.style.display = 'none';
-          }
-          setHoveredLabel(null);
         }
       },
+      onHover: (event, elements) => {
+        const tooltipEl = tooltipRef.current;
+        if (!tooltipEl) return;
+
+        if (elements && elements.length > 0) {
+          const element = elements[0];
+          tooltipEl.style.display = 'block';
+          tooltipEl.style.left = `${event.native.clientX}px`;
+          tooltipEl.style.top = `${event.native.clientY}px`;
+          setHoveredLabel(`${element.element.$context.raw.x}: ${element.element.$context.raw.y}`);
+        } else {
+          tooltipEl.style.display = 'none';
+          setHoveredLabel(null);
+        }
+      }
     };
-  };
+  }, []);
 
   // Modify the createDataLabel function
   const createDataLabel = (text, position) => {
@@ -703,30 +724,22 @@ const Analytics = () => {
       const ctx = canvasRef.current.getContext('2d');
       if (chart) chart.destroy();
 
-      const newChart = new Chart(ctx, {
-        type: chartType,
-        data: {
-          datasets: [{
-            label: chartTitle,
-            data,
-            backgroundColor: 'rgba(190, 24, 93, 0.5)',
-            borderColor: 'rgb(190, 24, 93)',
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: { title: { display: true, text: xAxis } },
-            y: { title: { display: true, text: yAxis } }
-          },
-          ...setupChartTooltip(),
-        }
-      });
+      // Use setupChartTooltip in the chart configuration
+      const chartConfig = getChartConfig(
+        chartType,
+        data,
+        chartTitle,
+        xAxis,
+        yAxis,
+        setupChartTooltip()  // Actually use the tooltip setup
+      );
+
+      const newChart = new Chart(ctx, chartConfig);
       setChart(newChart);
     } else {
       generate3DChart(data);
     }
-  }, [fileData, chartType, dimension, xAxis, yAxis, zAxis, chartTitle, chart, generate3DChart]);
+  }, [fileData, chartType, dimension, xAxis, yAxis, zAxis, chartTitle, chart, generate3DChart, setupChartTooltip]); // Add setupChartTooltip to dependencies
 
   const saveChart = async () => {
     try {
@@ -749,14 +762,77 @@ const Analytics = () => {
       });
       const data = await response.json();
       if (data.success) {
-        toast.success('Chart configuration saved');
-        toast.info('Note: This chart will be available as long as its Excel file exists in the database', {
-          autoClose: 6000
+        // Success notification - show for 3 seconds
+        toast.success('Chart configuration saved', {
+          autoClose: 3000
         });
+
+        // First info notification - show for 5 seconds
+        toast.info('Chart will be automatically deleted after 12 hours from creation time', {
+          autoClose: 5000
+        });
+
+        // Check chart expiry time after saving
+        const chartId = data.chart._id;
+        const expiryResponse = await fetch(`http://localhost:5000/api/charts/${chartId}/expiry`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const expiryData = await expiryResponse.json();
+        
+        if (expiryData.success) {
+          const { expiryTime } = expiryData.data;
+          const formattedDate = new Date(expiryTime).toLocaleString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).replace(',', ' at');
+          
+          // Second info notification - show for 7 seconds
+          toast.info(`Chart will expire on: ${formattedDate}`, {
+            autoClose: 7000
+          });
+        }
       }
     } catch (error) {
       console.error('Error saving chart:', error);
-      toast.error('Error saving chart configuration');
+      toast.error('Error saving chart configuration', {
+        autoClose: 3000
+      });
+    }
+  };
+
+  const checkChartExpiry = async (chartId) => {
+    try {
+      const token = sessionStorage.getItem('userToken');
+      const response = await fetch(`http://localhost:5000/api/charts/${chartId}/expiry`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        const { remainingTime, isExpired } = data.data;
+        if (isExpired) {
+          toast.warning('This chart has expired and will be deleted soon');
+        } else {
+          const hoursRemaining = Math.floor(remainingTime / (1000 * 60 * 60));
+          const minutesRemaining = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+          toast.info(`Chart expires in ${hoursRemaining}h ${minutesRemaining}m`);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking chart expiry:', error);
+    }
+  };
+
+  const handleChartSave = async () => {
+    try {
+      const result = await saveChart();
+      if (result.success) {
+        await checkChartExpiry(result.chart._id);
+      }
+    } catch (error) {
+      console.error('Error handling chart save:', error);
     }
   };
 
@@ -835,7 +911,12 @@ const Analytics = () => {
         
         {/* Add this notification message */}
         <div className="mb-6 text-yellow-400 bg-yellow-900/30 p-4 rounded-lg">
-          Note: Charts will remain saved only as long as their respective Excel files exist in the database.
+          <p>Important Notes:</p>
+          <ul className="list-disc list-inside mt-2">
+            <li>Charts will be automatically deleted after 12 hours from their creation time</li>
+            <li>This deletion occurs even if the source file remains in the database</li>
+            <li>Please save or export important charts before they expire</li>
+          </ul>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -974,7 +1055,7 @@ const Analytics = () => {
             Download PDF
           </button>
           <button
-            onClick={saveChart}
+            onClick={handleChartSave}
             className="px-4 py-2 bg-[#1e293b] text-white rounded-lg hover:bg-[#1e293b]/80"
           >
             Save Chart
@@ -985,8 +1066,13 @@ const Analytics = () => {
           {dimension === '2d' && <canvas ref={canvasRef}></canvas>}
           <div 
             ref={tooltipRef}
-            className="absolute hidden bg-[#be185d] text-white px-2 py-1 rounded text-sm transform -translate-x-1/2 -translate-y-full pointer-events-none"
-            style={{ zIndex: 1000 }}
+            className="absolute hidden bg-[#be185d] text-white px-2 py-1 rounded text-sm transform -translate-x-1/2 -translate-y-full pointer-events-none z-50"
+            style={{ 
+              zIndex: 1000,
+              minWidth: '80px',
+              textAlign: 'center',
+              whiteSpace: 'pre-line'
+            }}
           >
             {hoveredLabel}
           </div>

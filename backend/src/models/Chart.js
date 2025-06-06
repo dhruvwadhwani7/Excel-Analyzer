@@ -23,14 +23,42 @@ const chartSchema = new mongoose.Schema({
   dataPreview: [Object],
   createdAt: { 
     type: Date, 
-    default: Date.now
+    default: () => new Date(Date.now() + (5.5 * 60 * 60 * 1000)), // Add IST offset
+    expires: 43200 // 12 hours in seconds
   }
 });
 
-// Update TTL index for 12-hour expiry (12 * 60 * 60 seconds)
-chartSchema.index({ createdAt: 1 }, { expireAfterSeconds: 43200 });
+// Update TTL index with correct expiry time
+chartSchema.index({ createdAt: 1 }, { 
+  expireAfterSeconds: 43200,
+  background: true 
+});
 
 // Add index for faster querying by fileId
 chartSchema.index({ fileId: 1 });
+
+// Add validation to ensure file exists
+chartSchema.pre('save', async function(next) {
+  try {
+    const File = require('./File');
+    const file = await File.findById(this.fileId);
+    if (!file) {
+      throw new Error('Referenced file does not exist');
+    }
+    // Align chart expiry with file expiry
+    const fileExpiry = new Date(file.uploadDate.getTime() + 43200000); // 12 hours
+    if (this.createdAt > fileExpiry) {
+      throw new Error('Chart cannot outlive its file');
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Add a method to get IST time
+chartSchema.methods.getISTTime = function() {
+  return new Date(this.createdAt.getTime() + (5.5 * 60 * 60 * 1000));
+};
 
 module.exports = mongoose.model('Chart', chartSchema);
