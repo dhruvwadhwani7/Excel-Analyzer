@@ -35,6 +35,22 @@ export const AuthProvider = ({ children }) => {
     initializeAuth()
   }, [])
 
+   const register = (userData, token, rememberMe) => {
+  const userDataWithPhone = {
+    ...userData,
+    phoneNumber: userData.phoneNumber
+  };
+
+  sessionStorage.setItem('userData', JSON.stringify(userDataWithPhone));
+  sessionStorage.setItem('userToken', token);
+
+  if (rememberMe) {
+    localStorage.setItem('userData', JSON.stringify(userDataWithPhone));
+    localStorage.setItem('userToken', token);
+  }
+
+  setUser(userDataWithPhone);
+};
   const login = (userData, token, rememberMe) => {
     const userDataWithPhone = {
       ...userData,
@@ -81,7 +97,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser, loading }}>
+    <AuthContext.Provider value={{ user, register,login, logout, updateUser, loading }}>
       {children}
     </AuthContext.Provider>
   )
