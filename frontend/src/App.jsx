@@ -9,6 +9,7 @@ import Register from './pages/Register'
 import Profile from './pages/Profile'
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
+import Analytics from './pages/Analytics'
 import { useEffect } from 'react'
 
 const ProtectedRoute = ({ children }) => {
@@ -66,6 +67,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Upload />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <Analytics />
                 </ProtectedRoute>
               }
             />

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const fs = require('fs');
 
 const fileSchema = new mongoose.Schema({
   fileName: {
@@ -15,8 +16,20 @@ const fileSchema = new mongoose.Schema({
     required: true
   },
   fileData: {
-    type: Buffer,
+    type: Array,
     required: true
+  },
+  preview: {
+    type: Array,
+    default: []
+  },
+  columns: {
+    type: [String],
+    default: []
+  },
+  rowCount: {
+    type: Number,
+    default: 0
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -32,6 +45,10 @@ const fileSchema = new mongoose.Schema({
     type: String,
     enum: ['processing', 'processed', 'failed'],
     default: 'processing'
+  },
+  filePath: {
+    type: String,
+    required: true
   }
 });
 
@@ -40,5 +57,13 @@ fileSchema.index({ uploadDate: 1 }, { expireAfterSeconds: 43200 });
 
 // Index for faster queries
 fileSchema.index({ userId: 1, uploadDate: -1 });
+
+// Add cleanup middleware to delete file when document is deleted
+fileSchema.pre('deleteOne', { document: true }, function(next) {
+  if (this.filePath && fs.existsSync(this.filePath)) {
+    fs.unlinkSync(this.filePath);
+  }
+  next();
+});
 
 module.exports = mongoose.model('File', fileSchema);

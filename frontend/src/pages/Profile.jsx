@@ -1,6 +1,6 @@
 import { useAuth } from '../context/AuthContext'
 import { useState, useEffect, useCallback } from 'react'
-import { FaList, FaThLarge, FaSearch, FaFileCsv, FaFileExcel, FaTrash, FaCheck, FaTimes } from 'react-icons/fa'
+import { FaList, FaThLarge, FaSearch, FaFileCsv, FaFileExcel, FaTrash, FaCheck, FaTimes, FaChartBar, FaChartPie, FaChartLine, FaEye } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 
 const Profile = () => {
@@ -12,6 +12,13 @@ const Profile = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState({ show: false, fileId: null });
+  const [charts, setCharts] = useState([]);
+  const [chartViewMode, setChartViewMode] = useState('grid');
+  const [chartSearchTerm, setChartSearchTerm] = useState('');
+  const [deleteChartModal, setDeleteChartModal] = useState({ show: false, chartId: null });
+  const [previewModal, setPreviewModal] = useState({ show: false, fileData: null });
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -34,6 +41,27 @@ const Profile = () => {
     };
 
     fetchFiles();
+  }, []);
+
+  useEffect(() => {
+    const fetchCharts = async () => {
+      try {
+        const token = sessionStorage.getItem('userToken');
+        const response = await fetch('http://localhost:5000/api/charts/all', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setCharts(data.charts);
+        }
+      } catch (error) {
+        console.error('Error fetching charts:', error);
+      }
+    };
+
+    fetchCharts();
   }, []);
 
   const handleSubmit = async () => {
@@ -89,6 +117,34 @@ const Profile = () => {
     setDeleteModal({ show: false, fileId: null });
   };
 
+  const handleChartDeleteClick = (chartId) => {
+    setDeleteChartModal({ show: true, chartId });
+  };
+
+  const handleChartDeleteConfirm = async () => {
+    try {
+      const token = sessionStorage.getItem('userToken');
+      const response = await fetch(`http://localhost:5000/api/charts/${deleteChartModal.chartId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setCharts(charts.filter(chart => chart._id !== deleteChartModal.chartId));
+        toast.success('Chart deleted successfully');
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message || 'Error deleting chart');
+    } finally {
+      setDeleteChartModal({ show: false, chartId: null });
+    }
+  };
+
   const getRemainingTime = useCallback((uploadDate) => {
     const uploaded = new Date(uploadDate);
     const expiryTime = new Date(uploaded.getTime() + (12 * 60 * 60 * 1000));
@@ -104,6 +160,76 @@ const Profile = () => {
 
   const filteredFiles = files.filter(file => 
     file.fileName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredCharts = charts.filter(chart => 
+    chart.title?.toLowerCase().includes(chartSearchTerm.toLowerCase()) ||
+    chart.chartType.toLowerCase().includes(chartSearchTerm.toLowerCase())
+  );
+
+  const ErrorMessage = ({ message }) => (
+    <div className="text-red-500 bg-red-500/10 p-4 rounded-lg mb-4">
+      <p>{message}</p>
+    </div>
+  );
+
+  const FilePreviewModal = ({ data, onClose }) => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-[#0f172a] rounded-xl p-6 max-w-4xl w-full mx-4 animate-fadeIn max-h-[90vh] overflow-auto">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="text-xl font-bold text-white">{data.fileName}</h3>
+            <p className="text-sm text-gray-400">Total Rows: {data.totalRows}</p>
+          </div>
+          <button 
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <FaTimes className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {error && <ErrorMessage message={error} />}
+
+        <div className="overflow-x-auto">
+          {data.columns?.length > 0 ? (
+            <table className="w-full text-left">
+              <thead className="bg-[#1e293b] text-white">
+                <tr>
+                  {data.columns.map((column, i) => (
+                    <th key={i} className="p-3 whitespace-nowrap">{column}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="text-gray-300">
+                {data.preview?.map((row, i) => (
+                  <tr key={i} className="border-b border-gray-800 hover:bg-[#1e293b]/50">
+                    {data.columns.map((column, j) => (
+                      <td key={j} className="p-3 whitespace-nowrap">
+                        {row[column]?.toString() || ''}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              No preview data available
+            </div>
+          )}
+        </div>
+        
+        <div className="mt-4 text-right">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-[#1e293b] text-white rounded-lg hover:bg-[#1e293b]/80 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   );
 
   return (
@@ -232,7 +358,7 @@ const Profile = () => {
                 <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
-                Files are automatically removed 12 hours after upload , You can delete by hovering on files as well.
+                Files are automatically removed 12 hours after upload , You can PREVIEW or DELETE  by hovering on files as well
               </p>
             </div>
           </div>
@@ -245,13 +371,57 @@ const Profile = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {filteredFiles.map(file => (
                 <div key={file._id} className="bg-[#1e293b] p-4 rounded-lg hover:bg-[#1e293b]/80 transition-colors relative group">
-                  <button
-                    onClick={() => handleDeleteClick(file._id)}
-                    className="absolute top-2 right-2 p-2 rounded-full bg-red-500/20 text-red-500 
-                    opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/30"
-                  >
-                    <FaTrash className="w-4 h-4" />
-                  </button>
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    <button
+                      onClick={async () => {
+                        try {
+                          setPreviewLoading(true);
+                          setError(null);
+                          const token = sessionStorage.getItem('userToken');
+                          const response = await fetch(`http://localhost:5000/api/files/${file._id}/preview`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                          });
+                          const data = await response.json();
+                          if (data.success) {
+                            setPreviewModal({ 
+                              show: true, 
+                              fileData: {
+                                ...data.data,
+                                preview: data.data.preview || [],
+                                columns: data.data.columns || []
+                              }
+                            });
+                          } else {
+                            throw new Error(data.message || 'Failed to load preview');
+                          }
+                        } catch (error) {
+                          setError(error.message);
+                          toast.error('Error loading preview: ' + error.message);
+                        } finally {
+                          setPreviewLoading(false);
+                        }
+                      }}
+                      disabled={previewLoading}
+                      className={`p-2 rounded-full ${
+                        previewLoading 
+                          ? 'bg-gray-500/20 text-gray-500' 
+                          : 'bg-blue-500/20 text-blue-500 opacity-0 group-hover:opacity-100'
+                      } transition-opacity hover:bg-blue-500/30`}
+                    >
+                      {previewLoading ? (
+                        <div className="w-4 h-4 animate-spin border-2 border-blue-500 border-t-transparent rounded-full" />
+                      ) : (
+                        <FaEye className="w-4 h-4" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(file._id)}
+                      className="p-2 rounded-full bg-red-500/20 text-red-500 
+                      opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/30"
+                    >
+                      <FaTrash className="w-4 h-4" />
+                    </button>
+                  </div>
                   {file.fileType === 'csv' ? (
                     <FaFileCsv className="text-4xl text-green-500 mb-2" />
                   ) : (
@@ -324,6 +494,111 @@ const Profile = () => {
         </div>
       </div>
 
+      {/* Chart History Section */}
+      <div className="max-w-7xl mx-auto mt-8">
+        <div className="bg-[#0f172a] rounded-lg shadow-lg p-6">
+          <div className="flex flex-col mb-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white">Chart History</h2>
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search charts..."
+                    value={chartSearchTerm}
+                    onChange={(e) => setChartSearchTerm(e.target.value)}
+                    className="bg-[#1e293b] text-white rounded-lg pl-10 pr-4 py-2 w-64"
+                  />
+                  <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setChartViewMode('grid')}
+                    className={`p-2 rounded ${chartViewMode === 'grid' ? 'bg-[#be185d]' : 'bg-[#1e293b]'}`}
+                  >
+                    <FaThLarge className="text-white" />
+                  </button>
+                  <button
+                    onClick={() => setChartViewMode('list')}
+                    className={`p-2 rounded ${chartViewMode === 'list' ? 'bg-[#be185d]' : 'bg-[#1e293b]'}`}
+                  >
+                    <FaList className="text-white" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {chartViewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {filteredCharts.map(chart => (
+                <div key={chart._id} className="bg-[#1e293b] p-4 rounded-lg hover:bg-[#1e293b]/80 transition-colors relative group">
+                  <button
+                    onClick={() => handleChartDeleteClick(chart._id)}
+                    className="absolute top-2 right-2 p-2 rounded-full bg-red-500/20 text-red-500 
+                    opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/30"
+                  >
+                    <FaTrash className="w-4 h-4" />
+                  </button>
+                  {chart.chartType.includes('pie') ? (
+                    <FaChartPie className="text-4xl text-[#be185d] mb-2" />
+                  ) : chart.chartType.includes('line') ? (
+                    <FaChartLine className="text-4xl text-[#be185d] mb-2" />
+                  ) : (
+                    <FaChartBar className="text-4xl text-[#be185d] mb-2" />
+                  )}
+                  <h3 className="text-white font-medium truncate">{chart.title || 'Untitled Chart'}</h3>
+                  <p className="text-gray-400 text-sm">Type: {chart.chartType}</p>
+                  <p className="text-gray-400 text-sm">File: {chart.fileId?.fileName}</p>
+                  <p className="text-gray-400 text-sm">
+                    Created: {new Date(chart.createdAt).toLocaleDateString()}
+                  </p>
+                  <div className="mt-2 text-xs">
+                    <span className="text-blue-400">X: {chart.xAxis}</span>
+                    <span className="text-green-400 ml-2">Y: {chart.yAxis}</span>
+                    {chart.zAxis && <span className="text-yellow-400 ml-2">Z: {chart.zAxis}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredCharts.map(chart => (
+                <div key={chart._id} className="flex items-center justify-between bg-[#1e293b] p-4 rounded-lg group">
+                  <div className="flex items-center gap-3">
+                    {chart.chartType.includes('pie') ? (
+                      <FaChartPie className="text-2xl text-[#be185d]" />
+                    ) : chart.chartType.includes('line') ? (
+                      <FaChartLine className="text-2xl text-[#be185d]" />
+                    ) : (
+                      <FaChartBar className="text-2xl text-[#be185d]" />
+                    )}
+                    <div>
+                      <h3 className="text-white font-medium">{chart.title || 'Untitled Chart'}</h3>
+                      <p className="text-gray-400 text-sm">
+                        Type: {chart.chartType} | File: {chart.fileId?.fileName}
+                      </p>
+                      <div className="text-xs mt-1">
+                        <span className="text-blue-400">X: {chart.xAxis}</span>
+                        <span className="text-green-400 ml-2">Y: {chart.yAxis}</span>
+                        {chart.zAxis && <span className="text-yellow-400 ml-2">Z: {chart.zAxis}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleChartDeleteClick(chart._id)}
+                    className="p-2 rounded-full bg-red-500/20 text-red-500 
+                    opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/30"
+                  >
+                    <FaTrash className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Delete Confirmation Modal */}
       {deleteModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -348,6 +623,40 @@ const Profile = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Chart Delete Confirmation Modal */}
+      {deleteChartModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#0f172a] rounded-xl p-6 max-w-sm w-full mx-4 animate-fadeIn">
+            <h3 className="text-xl font-bold text-white mb-4">Confirm Delete Chart</h3>
+            <p className="text-gray-400 mb-6">Are you sure you want to delete this chart? This action cannot be undone.</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setDeleteChartModal({ show: false, chartId: null })}
+                className="flex items-center px-4 py-2 rounded-md bg-[#1e293b] text-white hover:bg-[#1e293b]/80 transition-all"
+              >
+                <FaTimes className="mr-2" />
+                No, Cancel
+              </button>
+              <button
+                onClick={handleChartDeleteConfirm}
+                className="flex items-center px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600 transition-all"
+              >
+                <FaCheck className="mr-2" />
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* File Preview Modal */}
+      {previewModal.show && (
+        <FilePreviewModal 
+          data={previewModal.fileData}
+          onClose={() => setPreviewModal({ show: false, fileData: null })}
+        />
       )}
     </div>
   );

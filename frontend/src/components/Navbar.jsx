@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { FaUserCircle, FaUserPlus, FaChartLine, FaFileUpload, FaHome, FaCheck, FaTimes } from 'react-icons/fa'
+import { FaUserCircle, FaUserPlus, FaChartLine, FaFileUpload, FaHome, FaCheck, FaTimes, FaChartBar } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
 import { useState } from 'react'
 
@@ -33,25 +33,38 @@ const Navbar = () => {
                   Excel Analyzer
                 </span>
               </Link>
-              <Link 
-                to={user ? "/dashboard" : "/"} 
-                className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
-              >
-                <FaHome className="mr-2" />
-                Home
-              </Link>
+              <div className="flex items-center space-x-4">
+                <Link 
+                  to={user ? "/dashboard" : "/"} 
+                  className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
+                >
+                  <FaHome className="mr-2" />
+                  Home
+                </Link>
+                {user && (
+                  <>
+                    <Link 
+                      to="/analytics" 
+                      className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
+                    >
+                      <FaChartBar className="mr-2" />
+                      Analytics
+                    </Link>
+                    <Link 
+                      to="/upload" 
+                      className="flex items-center px-4 py-2 rounded-md bg-[#be185d] text-white hover:bg-[#be185d]/90 transition-all transform hover:scale-105"
+                    >
+                      <FaFileUpload className="mr-2" />
+                      Upload File
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center space-x-4">
               {user ? (
                 <>
-                  <Link 
-                    to="/upload" 
-                    className="flex items-center px-4 py-2 rounded-md bg-[#be185d] text-white hover:bg-[#be185d]/90 transition-all transform hover:scale-105"
-                  >
-                    <FaFileUpload className="mr-2" />
-                    Upload File
-                  </Link>
                   <Link 
                     to="/dashboard" 
                     className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
