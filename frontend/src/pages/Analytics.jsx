@@ -53,7 +53,7 @@ const Analytics = () => {
       try {
         setLoading(true);
         const token = sessionStorage.getItem('userToken');
-        const response = await fetch('http://localhost:5000/api/files/all', {
+        const response = await fetch('https://excel-analyzer-1.onrender.com/api/files/all', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -71,7 +71,7 @@ const Analytics = () => {
   const fetchFileData = async (fileId) => {
     try {
       const token = sessionStorage.getItem('userToken');
-      const response = await fetch(`http://localhost:5000/api/files/${fileId}/data`, {
+      const response = await fetch(`https://excel-analyzer-1.onrender.com/api/files/${fileId}/data`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -744,7 +744,7 @@ const Analytics = () => {
   const saveChart = async () => {
     try {
       const token = sessionStorage.getItem('userToken');
-      const response = await fetch('http://localhost:5000/api/chart/save-temp', {
+      const response = await fetch('https://excel-analyzer-1.onrender.com/api/chart/save-temp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -774,7 +774,7 @@ const Analytics = () => {
 
         // Check chart expiry time after saving
         const chartId = data.chart._id;
-        const expiryResponse = await fetch(`http://localhost:5000/api/charts/${chartId}/expiry`, {
+        const expiryResponse = await fetch(`https://excel-analyzer-1.onrender.com/api/charts/${chartId}/expiry`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const expiryData = await expiryResponse.json();
@@ -806,7 +806,7 @@ const Analytics = () => {
   const checkChartExpiry = async (chartId) => {
     try {
       const token = sessionStorage.getItem('userToken');
-      const response = await fetch(`http://localhost:5000/api/charts/${chartId}/expiry`, {
+      const response = await fetch(`https://excel-analyzer-1.onrender.com/api/charts/${chartId}/expiry`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();

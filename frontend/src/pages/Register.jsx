@@ -34,7 +34,7 @@ const Register = () => {
         phoneNumber: formData.phoneNumber // Backend will handle the +91 prefix
       };
 
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch('https://excel-analyzer-1.onrender.com/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSend)
