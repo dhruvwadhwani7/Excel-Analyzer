@@ -12,13 +12,17 @@ const File = require('./models/File');
 const Chart = require('./models/Chart');
 const { getISTTime, formatISTDate, getExpiryTime } = require('./utils/timeUtils');
 const setupMongoDB = require('./config/mongodb');
+const { adminOnly } = require('./middleware/admin');
+const adminController = require('./controllers/adminController');
 
 const app = express();
 
+// Update CORS configuration
 app.use(cors({
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json());
@@ -325,40 +329,77 @@ app.get('/api/files/stats', protect, async (req, res) => {
 // Chart routes
 app.post('/api/chart/save-temp', protect, async (req, res) => {
   try {
-    // Validate chart type and set dimension
-    const chartType = req.body.chartType;
+    // Validate required fields
+    const { chartType, title, data } = req.body;
+    if (!chartType || !data) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required chart data'
+      });
+    }
+
     const is3D = ['column3d', 'bar3d', 'line3d', 'scatter3d', 'area3d'].includes(chartType);
     
     const chart = new Chart({
       userId: req.user._id,
-      ...req.body,
+      chartType,
+      title: title || 'Untitled Chart',
+      data,
       dimension: is3D ? '3d' : '2d',
-      createdAt: new Date()  // Explicitly set creation time
+      createdAt: new Date()
     });
     
     await chart.save();
-    res.json({ success: true, chart });
+    res.json({ 
+      success: true, 
+      chart: chart.toObject() 
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Chart save error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error saving chart configuration'
+    });
   }
 });
 
-// Get saved chart configuration
+// Get saved chart configuration - improved error handling
 app.get('/api/chart/:chartId', protect, async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.chartId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid chart ID format'
+      });
+    }
+
     const chart = await Chart.findOne({
       _id: req.params.chartId,
       userId: req.user._id
-    });
+    }).lean();
+
     if (!chart) {
       return res.status(404).json({ 
         success: false, 
         message: 'Chart configuration not found or expired' 
       });
     }
+
+    // Ensure all required fields are present
+    if (!chart.chartType || !chart.data) {
+      return res.status(500).json({
+        success: false,
+        message: 'Invalid chart configuration'
+      });
+    }
+
     res.json({ success: true, chart });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('Chart fetch error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error while fetching chart'
+    });
   }
 });
 
@@ -473,6 +514,110 @@ app.get('/api/files/:fileId/preview', protect, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Admin routes
+app.get('/api/admin/stats', protect, adminOnly, adminController.getStats);
+
+// Admin delete routes with improved error handling
+app.delete('/api/admin/files/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const file = await File.findById(req.params.id);
+    
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+
+    // Delete associated charts first
+    await Chart.deleteMany({ fileId: file._id });
+
+    // Delete physical file
+    if (file.filePath && fs.existsSync(file.filePath)) {
+      fs.unlinkSync(file.filePath);
+    }
+
+    await file.deleteOne();
+    
+    res.json({
+      success: true,
+      message: 'File and associated data deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete file error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting file: ' + error.message
+    });
+  }
+});
+
+app.delete('/api/admin/charts/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const chart = await Chart.findById(req.params.id);
+    
+    if (!chart) {
+      return res.status(404).json({
+        success: false,
+        message: 'Chart not found'
+      });
+    }
+
+    await chart.deleteOne();
+    
+    res.json({
+      success: true,
+      message: 'Chart deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete chart error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting chart: ' + error.message
+    });
+  }
+});
+
+app.delete('/api/admin/users/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const user = await mongoose.model('User').findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Delete all user's files and their associated charts
+    const userFiles = await File.find({ userId: user._id });
+    for (const file of userFiles) {
+      if (file.filePath && fs.existsSync(file.filePath)) {
+        fs.unlinkSync(file.filePath);
+      }
+      await Chart.deleteMany({ fileId: file._id });
+      await file.deleteOne();
+    }
+
+    // Delete all user's charts
+    await Chart.deleteMany({ userId: user._id });
+
+    // Finally delete the user
+    await user.deleteOne();
+    
+    res.json({
+      success: true,
+      message: 'User and all associated data deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting user: ' + error.message
+    });
   }
 });
 

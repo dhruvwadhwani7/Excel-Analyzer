@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const { isAdmin } = require('../config/adminConfig');
 
 const sendTokenResponse = (user, statusCode, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -23,6 +24,14 @@ exports.register = async (req, res) => {
   try {
     const { name, email, password, phoneNumber } = req.body;
     
+    // Prevent admin registration through API
+    if (req.body.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot register as admin'
+      });
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ 
       $or: [
@@ -63,6 +72,27 @@ exports.login = async (req, res) => {
   try {
     const { identifier, password } = req.body;
     
+    // Check for admin credentials first
+    const adminMatch = isAdmin(identifier, password);
+    if (adminMatch) {
+      const token = jwt.sign(
+        { id: 'admin' },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRE }
+      );
+
+      return res.json({
+        success: true,
+        token,
+        user: {
+          id: 'admin',
+          name: 'Administrator',
+          email: identifier,
+          role: 'admin'
+        }
+      });
+    }
+
     // Check if identifier is email or phone number
     const isEmail = identifier.includes('@');
     const query = isEmail 

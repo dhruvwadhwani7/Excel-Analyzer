@@ -16,7 +16,11 @@ const userSchema = new mongoose.Schema({
     }
   },
   password: { type: String, required: true, select: false },
-  role: { type: String, enum: ['regular', 'admin'], default: 'regular' },
+  role: {
+    type: String,
+    enum: ['admin', 'regular'],
+    default: 'regular'
+  },
   createdAt: { 
     type: Date, 
     default: () => new Date(Date.now() + (5.5 * 60 * 60 * 1000)) // Add IST offset

@@ -10,6 +10,7 @@ import Profile from './pages/Profile'
 import Dashboard from './pages/Dashboard'
 import Upload from './pages/Upload'
 import Analytics from './pages/Analytics'
+import AdminDashboard from './pages/AdminDashboard'
 import { useEffect } from 'react'
 
 const ProtectedRoute = ({ children }) => {
@@ -35,6 +36,23 @@ const ProtectedRoute = ({ children }) => {
 
   return children
 }
+
+// Add an AdminRoute component
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="text-white">Loading...</div>
+    </div>
+  }
+
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+};
 
 function App() {
   return (
@@ -76,6 +94,14 @@ function App() {
                 <ProtectedRoute>
                   <Analytics />
                 </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
               }
             />
           </Routes>

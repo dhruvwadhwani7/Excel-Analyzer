@@ -28,57 +28,65 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-4">
-              <Link to="/" className="flex items-center">
+              <Link to={user?.role === 'admin' ? "/admin" : "/"} className="flex items-center">
                 <span className="text-xl font-bold text-white hover:text-[#be185d] transition-colors">
                   Excel Analyzer
                 </span>
               </Link>
-              <div className="flex items-center space-x-4">
-                <Link 
-                  to={user ? "/dashboard" : "/"} 
-                  className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
-                >
-                  <FaHome className="mr-2" />
-                  Home
-                </Link>
-                {user && (
-                  <>
-                    <Link 
-                      to="/analytics" 
-                      className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
-                    >
-                      <FaChartBar className="mr-2" />
-                      Analytics
-                    </Link>
-                    <Link 
-                      to="/upload" 
-                      className="flex items-center px-4 py-2 rounded-md bg-[#be185d] text-white hover:bg-[#be185d]/90 transition-all transform hover:scale-105"
-                    >
-                      <FaFileUpload className="mr-2" />
-                      Upload File
-                    </Link>
-                  </>
-                )}
-              </div>
+              
+              {/* Show navigation links only for regular users */}
+              {user && user.role !== 'admin' && (
+                <div className="flex items-center space-x-4">
+                  <Link 
+                    to={user ? "/dashboard" : "/"} 
+                    className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
+                  >
+                    <FaHome className="mr-2" />
+                    Home
+                  </Link>
+                  {user && (
+                    <>
+                      <Link 
+                        to="/analytics" 
+                        className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
+                      >
+                        <FaChartBar className="mr-2" />
+                        Analytics
+                      </Link>
+                      <Link 
+                        to="/upload" 
+                        className="flex items-center px-4 py-2 rounded-md bg-[#be185d] text-white hover:bg-[#be185d]/90 transition-all transform hover:scale-105"
+                      >
+                        <FaFileUpload className="mr-2" />
+                        Upload File
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center space-x-4">
               {user ? (
                 <>
-                  <Link 
-                    to="/dashboard" 
-                    className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
-                  >
-                    <FaChartLine className="mr-2" />
-                    Dashboard
-                  </Link>
-                  <Link 
-                    to="/profile" 
-                    className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
-                  >
-                    <FaUserCircle className="mr-2" />
-                    Profile
-                  </Link>
+                  {user.role !== 'admin' && (
+                    <>
+                      <Link 
+                        to="/dashboard" 
+                        className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
+                      >
+                        <FaChartLine className="mr-2" />
+                        Dashboard
+                      </Link>
+                      <Link 
+                        to="/profile" 
+                        className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors"
+                      >
+                        <FaUserCircle className="mr-2" />
+                        Profile
+                      </Link>
+                    </>
+                  )}
                   <button
                     onClick={handleLogoutClick}
                     className="flex items-center px-4 py-2 rounded-md border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all"
