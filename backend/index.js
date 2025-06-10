@@ -6,6 +6,7 @@ const cors = require('cors');
 const authController = require('./controllers/auth');
 const { protect } = require('./middleware/auth');
 const multer = require('multer');
+const ExcelJS = require('exceljs');
 const fs = require('fs');
 const File = require('./models/File');
 const Chart = require('./models/Chart');
