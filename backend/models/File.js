@@ -103,4 +103,20 @@ fileSchema.methods.getISTTime = function() {
   return new Date(this.uploadDate.getTime() + (5.5 * 60 * 60 * 1000));
 };
 
+fileSchema.pre('save', function(next) {
+  if (this.fileData && Array.isArray(this.fileData)) {
+    // Ensure preview data exists
+    if (!this.preview || this.preview.length === 0) {
+      this.preview = this.fileData.slice(0, 10);
+    }
+    // Ensure columns are extracted
+    if (!this.columns || this.columns.length === 0 && this.fileData[0]) {
+      this.columns = Object.keys(this.fileData[0]);
+    }
+    // Update row count
+    this.rowCount = this.fileData.length;
+  }
+  next();
+});
+
 module.exports = mongoose.model('File', fileSchema);

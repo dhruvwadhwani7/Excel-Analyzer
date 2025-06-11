@@ -108,19 +108,45 @@ app.post('/api/files/upload', protect, upload.single('file'), async (req, res) =
 
     // Parse Excel/CSV file
     const ext = path.extname(req.file.originalname).toLowerCase();
-    if (['.xlsx', '.xls', '.csv'].includes(ext)) {
-      const workbook = xlsx.readFile(req.file.path);
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      parsedData = xlsx.utils.sheet_to_json(sheet);
+    if (['.xlsx', '.xls'].includes(ext)) {
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(req.file.path);
       
-      if (parsedData.length > 0) {
-        columns = Object.keys(parsedData[0]);
-        preview = parsedData.slice(0, 10);
-      }
+      const worksheet = workbook.worksheets[0];
+      columns = worksheet.getRow(1).values.slice(1); // Get headers, skip first empty cell
+
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return; // Skip header row
+        const rowData = {};
+        row.eachCell((cell, colNumber) => {
+          rowData[columns[colNumber - 1]] = cell.value;
+        });
+        parsedData.push(rowData);
+        if (rowNumber <= 11) { // Get first 10 rows for preview (after header)
+          preview.push(rowData);
+        }
+      });
+    } else if (ext === '.csv') {
+      const workbook = new ExcelJS.Workbook();
+      await workbook.csv.readFile(req.file.path);
+      
+      const worksheet = workbook.worksheets[0];
+      columns = worksheet.getRow(1).values.slice(1);
+
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+        const rowData = {};
+        row.eachCell((cell, colNumber) => {
+          rowData[columns[colNumber - 1]] = cell.value;
+        });
+        parsedData.push(rowData);
+        if (rowNumber <= 11) {
+          preview.push(rowData);
+        }
+      });
     }
 
-    // Create file document with stored file path
+    // Create file document
     const file = new File({
       fileName: req.file.originalname,
       fileType: ext.slice(1),
@@ -131,13 +157,11 @@ app.post('/api/files/upload', protect, upload.single('file'), async (req, res) =
       preview,
       columns,
       rowCount: parsedData.length,
-      filePath: req.file.path // Store the file path
+      filePath: req.file.path
     });
 
     await file.save();
 
-    // Don't delete the file, we'll need it for charts
-    
     // Process file async
     setTimeout(async () => {
       try {
