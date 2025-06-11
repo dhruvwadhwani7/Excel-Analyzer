@@ -270,43 +270,30 @@ const Analytics = () => {
 
   // Add this new function for 2D charts
   const setupChartTooltip = useCallback(() => {
+    const tooltipHandler = function(context) {
+      const tooltipEl = tooltipRef.current;
+      if (!tooltipEl) return;
+
+      if (context.tooltip.opacity === 0) {
+        tooltipEl.style.display = 'none';
+        return;
+      }
+
+      const position = context.chart.canvas.getBoundingClientRect();
+      if (context.tooltip.body) {
+        const bodyLines = context.tooltip.body.map(b => b.lines);
+        tooltipEl.style.display = 'block';
+        tooltipEl.style.left = position.left + context.tooltip.caretX + 'px';
+        tooltipEl.style.top = position.top + context.tooltip.caretY + 'px';
+        setHoveredLabel(bodyLines.flat().join('\n'));
+      }
+    };
+
     return {
       plugins: {
         tooltip: {
           enabled: false,
-          external: (context) => {
-            const tooltipEl = tooltipRef.current;
-            if (!tooltipEl) return;
-
-            if (context.tooltip.opacity === 0) {
-              tooltipEl.style.display = 'none';
-              return;
-            }
-
-            const position = context.chart.canvas.getBoundingClientRect();
-            if (context.tooltip.body) {
-              const bodyLines = context.tooltip.body.map(b => b.lines);
-              tooltipEl.style.display = 'block';
-              tooltipEl.style.left = position.left + context.tooltip.caretX + 'px';
-              tooltipEl.style.top = position.top + context.tooltip.caretY + 'px';
-              setHoveredLabel(bodyLines.flat().join('\n'));
-            }
-          }
-        }
-      },
-      onHover: (event, elements) => {
-        const tooltipEl = tooltipRef.current;
-        if (!tooltipEl) return;
-
-        if (elements && elements.length > 0) {
-          const element = elements[0];
-          tooltipEl.style.display = 'block';
-          tooltipEl.style.left = `${event.native.clientX}px`;
-          tooltipEl.style.top = `${event.native.clientY}px`;
-          setHoveredLabel(`${element.element.$context.raw.x}: ${element.element.$context.raw.y}`);
-        } else {
-          tooltipEl.style.display = 'none';
-          setHoveredLabel(null);
+          external: tooltipHandler
         }
       }
     };
@@ -741,8 +728,32 @@ const Analytics = () => {
     }
   }, [fileData, chartType, dimension, xAxis, yAxis, zAxis, chartTitle, chart, generate3DChart, setupChartTooltip]); // Add setupChartTooltip to dependencies
 
+  // Update saveChart function
   const saveChart = async () => {
     try {
+      if (!fileData || !chartType || !xAxis || !yAxis) {
+        toast.error('Please select all required chart parameters');
+        return null;
+      }
+
+      const chartData = fileData.rows.map(row => ({
+        x: row[xAxis],
+        y: row[yAxis],
+        ...(dimension === '3d' && zAxis ? { z: row[zAxis] } : {})
+      }));
+
+      const payload = {
+        fileId: selectedFile,
+        chartType,
+        title: chartTitle || 'Untitled Chart',
+        data: chartData,
+        xAxis,
+        yAxis,
+        zAxis: dimension === '3d' ? zAxis : undefined,
+        dimension,
+        dataPreview: fileData?.preview || []
+      };
+
       const token = sessionStorage.getItem('userToken');
       const response = await fetch('https://excel-analyzer-1.onrender.com/api/chart/save-temp', {
         method: 'POST',
@@ -750,56 +761,43 @@ const Analytics = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          fileId: selectedFile,
-          chartType,
-          title: chartTitle,
-          xAxis,
-          yAxis,
-          zAxis,
-          dataPreview: fileData?.preview
-        })
+        body: JSON.stringify(payload)
       });
-      const data = await response.json();
-      if (data.success) {
-        // Success notification - show for 3 seconds
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to save chart');
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Chart save error:', error);
+      toast.error(error.message || 'Error saving chart configuration');
+      return null;
+    }
+  };
+
+  // Update handleChartSave function
+  const handleChartSave = async () => {
+    try {
+      const result = await saveChart();
+      if (result && result.success) {
         toast.success('Chart configuration saved', {
           autoClose: 3000
         });
 
-        // First info notification - show for 5 seconds
         toast.info('Chart will be automatically deleted after 12 hours from creation time', {
           autoClose: 5000
         });
 
-        // Check chart expiry time after saving
-        const chartId = data.chart._id;
-        const expiryResponse = await fetch(`https://excel-analyzer-1.onrender.com/api/charts/${chartId}/expiry`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const expiryData = await expiryResponse.json();
-        
-        if (expiryData.success) {
-          const { expiryTime } = expiryData.data;
-          const formattedDate = new Date(expiryTime).toLocaleString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          }).replace(',', ' at');
-          
-          // Second info notification - show for 7 seconds
-          toast.info(`Chart will expire on: ${formattedDate}`, {
-            autoClose: 7000
-          });
+        if (result.chart?._id) {
+          await checkChartExpiry(result.chart._id);
         }
       }
     } catch (error) {
-      console.error('Error saving chart:', error);
-      toast.error('Error saving chart configuration', {
-        autoClose: 3000
-      });
+      console.error('Error handling chart save:', error);
+      toast.error('Failed to save chart');
     }
   };
 
@@ -822,17 +820,6 @@ const Analytics = () => {
       }
     } catch (error) {
       console.error('Error checking chart expiry:', error);
-    }
-  };
-
-  const handleChartSave = async () => {
-    try {
-      const result = await saveChart();
-      if (result.success) {
-        await checkChartExpiry(result.chart._id);
-      }
-    } catch (error) {
-      console.error('Error handling chart save:', error);
     }
   };
 
