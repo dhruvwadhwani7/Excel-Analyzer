@@ -353,9 +353,10 @@ app.get('/api/files/stats', protect, async (req, res) => {
 // Chart routes
 app.post('/api/chart/save-temp', protect, async (req, res) => {
   try {
+    const { chartType, title, data, xAxis, yAxis, zAxis, dimension, fileId, dataPreview } = req.body;
+    
     // Validate required fields
-    const { chartType, title, data } = req.body;
-    if (!chartType || !data) {
+    if (!chartType || !data || !xAxis || !yAxis) {
       return res.status(400).json({
         success: false,
         message: 'Missing required chart data'
@@ -366,23 +367,30 @@ app.post('/api/chart/save-temp', protect, async (req, res) => {
     
     const chart = new Chart({
       userId: req.user._id,
+      fileId: fileId || null,
       chartType,
       title: title || 'Untitled Chart',
       data,
+      xAxis,
+      yAxis,
+      zAxis: is3D ? zAxis : undefined,
       dimension: is3D ? '3d' : '2d',
+      dataPreview,
       createdAt: new Date()
     });
     
     await chart.save();
+
     res.json({ 
       success: true, 
-      chart: chart.toObject() 
+      chart: chart.toObject(),
+      message: 'Chart saved successfully'
     });
   } catch (error) {
     console.error('Chart save error:', error);
-    res.status(500).json({
+    res.status(400).json({
       success: false,
-      message: 'Error saving chart configuration'
+      message: error.message || 'Error saving chart configuration'
     });
   }
 });
