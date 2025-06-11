@@ -55,7 +55,7 @@ Frontend:
 cd frontend
 npm run dev
 ```
-The application will be available at `http://localhost:5173`
+The application will be available at `http://localhost:5173 , `https://excelanalyzer.netlify.app``
 
 ## Project Structure
 ```
