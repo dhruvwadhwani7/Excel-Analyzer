@@ -1,5 +1,10 @@
 # Excel Analyzer
 
+# Deployed Application  
+The Excel Analyzer can be accessed on   https://excelanalyzer.netlify.app/
+
+
+
 ## Project Overview
 Excel Analyzer is a web application that allows users to upload, analyze, and visualize Excel data efficiently. The project consists of a React frontend and provides interactive data visualization and analysis capabilities.
 
