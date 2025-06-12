@@ -8,5 +8,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "fs-extra": "^11.3.0",
+    "multer": "^2.0.1",
+    "xlsx": "^0.18.5"
+  }
 }

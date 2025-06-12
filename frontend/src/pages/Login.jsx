@@ -15,7 +15,7 @@ const Login = () => {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('https://excel-analyzer-1.onrender.com/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -27,13 +27,17 @@ const Login = () => {
         login(data.user, data.token, rememberMe)
         toast.success('Successfully logged in!')
 
-        // Handle redirect
-        const redirectUrl =
-          location.state?.from ||
-          sessionStorage.getItem('redirectUrl') ||
-          '/'
-        sessionStorage.removeItem('redirectUrl') // Clean up
-        navigate(redirectUrl)
+        // Handle role-based redirect
+        if (data.user.role === 'admin') {
+          navigate('/admin')
+        } else {
+          const redirectUrl =
+            location.state?.from ||
+            sessionStorage.getItem('redirectUrl') ||
+            '/'
+          sessionStorage.removeItem('redirectUrl') // Clean up
+          navigate(redirectUrl)
+        }
       } else {
         throw new Error(data.message)
       }
@@ -116,6 +120,84 @@ const Login = () => {
                 </p>
               </div>
             </form>
+          </div>
+
+          {/* Test Credentials Section */}
+          <div className="bg-[#1e293b] rounded-xl p-6 shadow-lg shadow-[#be185d]/10 transform hover:scale-105 transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Test Credentials</h3>
+              <span className="text-xs text-[#be185d] bg-[#be185d]/10 px-2 py-1 rounded-full">
+                Click to Copy
+              </span>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="border-b border-gray-700 pb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[#be185d] font-medium">Admin Access</span>
+                  <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">Role: Administrator</span>
+                </div>
+                <div 
+                  className="space-y-1 cursor-pointer hover:bg-[#0f172a] p-2 rounded transition-all"
+                  onClick={() => {
+                    navigator.clipboard.writeText('admin@gmail.com');
+                    toast.info('Email copied to clipboard');
+                  }}
+                >
+                  <p className="text-gray-400 text-sm flex justify-between">
+                    <span>Email:</span>
+                    <span className="text-white">admin@gmail.com</span>
+                  </p>
+                </div>
+                <div 
+                  className="space-y-1 cursor-pointer hover:bg-[#0f172a] p-2 rounded transition-all"
+                  onClick={() => {
+                    navigator.clipboard.writeText('admin123');
+                    toast.info('Password copied to clipboard');
+                  }}
+                >
+                  <p className="text-gray-400 text-sm flex justify-between">
+                    <span>Password:</span>
+                    <span className="text-white">admin123</span>
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[#be185d] font-medium">Regular User Access</span>
+                  <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">Role: User</span>
+                </div>
+                <div 
+                  className="space-y-1 cursor-pointer hover:bg-[#0f172a] p-2 rounded transition-all"
+                  onClick={() => {
+                    navigator.clipboard.writeText('test@gmail.com');
+                    toast.info('Email copied to clipboard');
+                  }}
+                >
+                  <p className="text-gray-400 text-sm flex justify-between">
+                    <span>Email:</span>
+                    <span className="text-white">test@gmail.com</span>
+                  </p>
+                </div>
+                <div 
+                  className="space-y-1 cursor-pointer hover:bg-[#0f172a] p-2 rounded transition-all"
+                  onClick={() => {
+                    navigator.clipboard.writeText('test123');
+                    toast.info('Password copied to clipboard');
+                  }}
+                >
+                  <p className="text-gray-400 text-sm flex justify-between">
+                    <span>Password:</span>
+                    <span className="text-white">test123</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p className="mt-4 text-xs text-gray-500 text-center">
+              Click on credentials to copy to clipboard
+            </p>
           </div>
         </div>
       </div>

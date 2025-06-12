@@ -84,14 +84,13 @@ const Upload = () => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('userId', user?.id); // Add optional chaining
 
       const token = sessionStorage.getItem('userToken');
       if (!token) {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch('http://localhost:5000/api/files/upload', {
+      const response = await fetch('https://excel-analyzer-1.onrender.com/api/files/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -106,16 +105,20 @@ const Upload = () => {
 
       const data = await response.json();
       if (!data.success) throw new Error(data.message);
-      
-      setFiles(prev => [...prev, {
+
+      const fileData = {
         id: data.file._id,
         name: data.file.fileName,
         date: new Date(data.file.uploadDate).toLocaleDateString(),
         status: data.file.status,
-        size: (data.file.fileSize / 1024).toFixed(2) + ' KB'
-      }]);
+        size: (data.file.fileSize / 1024).toFixed(2) + ' KB',
+        columns: data.file.columns,
+        rowCount: data.file.rowCount,
+        preview: data.file.preview
+      };
       
-      toast.success('File uploaded successfully!');
+      setFiles(prev => [fileData, ...prev]);
+      toast.success(`File uploaded successfully! ${fileData.rowCount} rows processed.`);
     } catch (error) {
       if (error.message === 'Authentication required') {
         navigate('/login');
