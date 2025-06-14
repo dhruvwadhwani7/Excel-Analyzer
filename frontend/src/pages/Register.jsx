@@ -1,12 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-<<<<<<< HEAD
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
-=======
-import { toast } from 'react-toastify'
-import { useAuth } from '../context/AuthContext'
->>>>>>> Dhruv
+
+
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -17,10 +14,8 @@ const Register = () => {
   })
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-<<<<<<< HEAD
-=======
 
->>>>>>> Dhruv
+
   const { register: authRegister } = useAuth();
   const validatePhoneNumber = (number) => {
     const phoneRegex = /^[6-9]\d{9}$/;
@@ -53,10 +48,6 @@ const Register = () => {
         authRegister(data.user, data.token, true);
         toast.success('Successfully registered!');
         navigate('/dashboard');
-<<<<<<< HEAD
-
-=======
->>>>>>> Dhruv
       } else {
         throw new Error(data.message)
       }

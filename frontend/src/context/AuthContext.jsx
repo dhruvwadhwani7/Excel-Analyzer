@@ -35,11 +35,9 @@ export const AuthProvider = ({ children }) => {
     initializeAuth()
   }, [])
 
-<<<<<<< HEAD
+
   const register = (userData, token, rememberMe) => {
-=======
-   const register = (userData, token, rememberMe) => {
->>>>>>> Dhruv
+
   const userDataWithPhone = {
     ...userData,
     phoneNumber: userData.phoneNumber
@@ -55,10 +53,6 @@ export const AuthProvider = ({ children }) => {
 
   setUser(userDataWithPhone);
 };
-<<<<<<< HEAD
-
-=======
->>>>>>> Dhruv
   const login = (userData, token, rememberMe) => {
     const userDataWithPhone = {
       ...userData,
@@ -105,11 +99,9 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-<<<<<<< HEAD
+
     <AuthContext.Provider value={{ user,register, login, logout, updateUser, loading }}>
-=======
-    <AuthContext.Provider value={{ user, register,login, logout, updateUser, loading }}>
->>>>>>> Dhruv
+
       {children}
     </AuthContext.Provider>
   )
