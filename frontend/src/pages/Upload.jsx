@@ -90,7 +90,7 @@ const Upload = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await fetch('https://excel-analyzer-1.onrender.com /api/files/upload', {
+      const response = await fetch('https://excel-analyzer-1.onrender.com/api/files/upload', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

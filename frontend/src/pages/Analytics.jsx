@@ -53,7 +53,7 @@ const Analytics = () => {
       try {
         setLoading(true);
         const token = sessionStorage.getItem('userToken');
-        const response = await fetch('https://excel-analyzer-1.onrender.com /api/files/all', {
+        const response = await fetch('https://excel-analyzer-1.onrender.com/api/files/all', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json();
@@ -71,7 +71,7 @@ const Analytics = () => {
   const fetchFileData = async (fileId) => {
     try {
       const token = sessionStorage.getItem('userToken');
-      const response = await fetch(`https://excel-analyzer-1.onrender.com /api/files/${fileId}/data`, {
+      const response = await fetch(`https://excel-analyzer-1.onrender.com/api/files/${fileId}/data`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -755,7 +755,7 @@ const Analytics = () => {
       };
 
       const token = sessionStorage.getItem('userToken');
-      const response = await fetch('https://excel-analyzer-1.onrender.com /api/chart/save-temp', {
+      const response = await fetch('https://excel-analyzer-1.onrender.com/api/chart/save-temp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -804,7 +804,7 @@ const Analytics = () => {
   const checkChartExpiry = async (chartId) => {
     try {
       const token = sessionStorage.getItem('userToken');
-      const response = await fetch(`https://excel-analyzer-1.onrender.com /api/charts/${chartId}/expiry`, {
+      const response = await fetch(`https://excel-analyzer-1.onrender.com/api/charts/${chartId}/expiry`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();

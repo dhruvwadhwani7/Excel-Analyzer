@@ -15,7 +15,7 @@ const Login = () => {
     e.preventDefault()
     setIsLoading(true)
     try {
-      const response = await fetch('https://excel-analyzer-1.onrender.com /api/auth/login', {
+      const response = await fetch('https://excel-analyzer-1.onrender.com/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

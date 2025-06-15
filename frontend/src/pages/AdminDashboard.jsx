@@ -40,7 +40,7 @@ const AdminDashboard = () => {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch('https://excel-analyzer-1.onrender.com /api/admin/stats', {
+      const response = await fetch('https://excel-analyzer-1.onrender.com/api/admin/stats', {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -86,7 +86,7 @@ const AdminDashboard = () => {
         throw new Error('Invalid delete parameters');
       }
       
-      const response = await fetch(`https://excel-analyzer-1.onrender.com /api/admin/${type}s/${id}`, {
+      const response = await fetch(`https://excel-analyzer-1.onrender.com/api/admin/${type}s/${id}`, {
         method: 'DELETE',
         headers: { 
           'Authorization': `Bearer ${token}`,

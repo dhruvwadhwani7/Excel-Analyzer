@@ -28,7 +28,7 @@ const Profile = () => {
     const fetchFiles = async () => {
       try {
         const token = sessionStorage.getItem('userToken');
-        const response = await fetch('https://excel-analyzer-1.onrender.com /api/files/all', {
+        const response = await fetch('https://excel-analyzer-1.onrender.com/api/files/all', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -51,7 +51,7 @@ const Profile = () => {
     const fetchCharts = async () => {
       try {
         const token = sessionStorage.getItem('userToken');
-        const response = await fetch('https://excel-analyzer-1.onrender.com /api/charts/all', {
+        const response = await fetch('https://excel-analyzer-1.onrender.com/api/charts/all', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -99,7 +99,7 @@ const Profile = () => {
   const handleSubmit = async () => {
     try {
       const token = sessionStorage.getItem('userToken')
-      const response = await fetch('https://excel-analyzer-1.onrender.com /api/user/update-name', {
+      const response = await fetch('https://excel-analyzer-1.onrender.com/api/user/update-name', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ const Profile = () => {
   const handleDeleteConfirm = async () => {
     try {
       const token = sessionStorage.getItem('userToken');
-      const response = await fetch(`https://excel-analyzer-1.onrender.com /api/files/${deleteModal.fileId}`, {
+      const response = await fetch(`https://excel-analyzer-1.onrender.com/api/files/${deleteModal.fileId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -156,7 +156,7 @@ const Profile = () => {
   const handleChartDeleteConfirm = async () => {
     try {
       const token = sessionStorage.getItem('userToken');
-      const response = await fetch(`https://excel-analyzer-1.onrender.com /api/charts/${deleteChartModal.chartId}`, {
+      const response = await fetch(`https://excel-analyzer-1.onrender.com/api/charts/${deleteChartModal.chartId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -416,7 +416,7 @@ const Profile = () => {
                           setPreviewLoading(true);
                           setError(null);
                           const token = sessionStorage.getItem('userToken');
-                          const response = await fetch(`https://excel-analyzer-1.onrender.com /api/files/${file._id}/preview`, {
+                          const response = await fetch(`https://excel-analyzer-1.onrender.com/api/files/${file._id}/preview`, {
                             headers: { 'Authorization': `Bearer ${token}` }
                           });
                           const data = await response.json();

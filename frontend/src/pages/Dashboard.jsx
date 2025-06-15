@@ -15,10 +15,10 @@ const Dashboard = () => {
       try {
         const token = sessionStorage.getItem('userToken');
         const [fileStatsRes, chartStatsRes] = await Promise.all([
-          fetch('https://excel-analyzer-1.onrender.com /api/files/stats', {
+          fetch('https://excel-analyzer-1.onrender.com/api/files/stats', {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
-          fetch('https://excel-analyzer-1.onrender.com /api/charts/stats', {
+          fetch('https://excel-analyzer-1.onrender.com/api/charts/stats', {
             headers: { 'Authorization': `Bearer ${token}` }
           })
         ]);
