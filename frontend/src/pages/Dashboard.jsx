@@ -235,35 +235,37 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8 ">
       {/* Welcome Section */}
       <div className="bg-[#0f172a] rounded-xl p-6 mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              Welcome back, {user?.name || 'User'}!
-            </h1>
-            <p className="text-gray-400">
-              Your last login was {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
-            </p>
-          </div>
-          <div className="flex gap-4">
-            <ActionButton
-              icon={FaUpload}
-              title="Upload New File"
-              description="Upload Excel or CSV files"
-              onClick={() => navigate('/upload')}
-            />
-            <ActionButton
-              icon={FaChartLine}
-              title="Analytics"
-              description="View your data insights"
-              onClick={() => navigate('/analytics')}
-            />
-          </div>
-        </div>
-      </div>
+  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+    {/* Left section */}
+    <div>
+      <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
+        Welcome back, {user?.name || 'User'}!
+      </h1>
+      <p className="text-gray-400 text-sm md:text-base">
+        Your last login was {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+      </p>
+    </div>
 
+    {/* Right section (buttons) */}
+    <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+      <ActionButton
+        icon={FaUpload}
+        title="Upload New File"
+        description="Upload Excel or CSV files"
+        onClick={() => navigate('/upload')}
+      />
+      <ActionButton
+        icon={FaChartLine}
+        title="Analytics"
+        description="View your data insights"
+        onClick={() => navigate('/analytics')}
+      />
+    </div>
+  </div>
+</div>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-[#0f172a] rounded-xl p-6">

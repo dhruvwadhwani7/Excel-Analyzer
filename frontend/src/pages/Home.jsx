@@ -17,7 +17,7 @@ const Home = () => {
   };
 
   return (
-    <div className="relative bg-[#020617]">
+    <div className="relative bg-[#020617] overflow-x-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-[#be185d]/20 to-transparent opacity-90 animate-gradient" />
       
       {/* Hero Section */}

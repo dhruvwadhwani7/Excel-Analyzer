@@ -1016,12 +1016,12 @@ const Analytics = () => {
           </div>
         </div>
 
-        <div className="flex gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4 mb-6">
           <button
             onClick={generateChart}
             disabled={loading}
-            className={`px-4 py-2 bg-[#be185d] text-white rounded-lg 
-              ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#be185d]/90'}`}
+            className={`w-full sm:w-auto px-4 py-2 bg-[#be185d] text-white rounded-lg 
+      ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#be185d]/90'}`}
           >
             {loading ? (
               <><FaSpinner className="inline mr-2 animate-spin" /> Processing...</>
@@ -1029,26 +1029,28 @@ const Analytics = () => {
               'Generate Chart'
             )}
           </button>
+
           <button
             onClick={downloadAsPNG}
-            className="px-4 py-2 bg-[#1e293b] text-white rounded-lg hover:bg-[#1e293b]/80"
+            className="w-full sm:w-auto px-4 py-2 bg-[#1e293b] text-white rounded-lg hover:bg-[#1e293b]/80"
           >
             Download PNG
           </button>
+
           <button
             onClick={downloadAsPDF}
-            className="px-4 py-2 bg-[#1e293b] text-white rounded-lg hover:bg-[#1e293b]/80"
+            className="w-full sm:w-auto px-4 py-2 bg-[#1e293b] text-white rounded-lg hover:bg-[#1e293b]/80"
           >
             Download PDF
           </button>
+
           <button
             onClick={handleChartSave}
-            className="px-4 py-2 bg-[#1e293b] text-white rounded-lg hover:bg-[#1e293b]/80"
+            className="w-full sm:w-auto px-4 py-2 bg-[#1e293b] text-white rounded-lg hover:bg-[#1e293b]/80"
           >
             Save Chart
           </button>
         </div>
-
         <div ref={chartRef} className="bg-[#1e293b] rounded-lg p-4 min-h-[400px] relative">
           {dimension === '2d' && <canvas ref={canvasRef}></canvas>}
           <div 
