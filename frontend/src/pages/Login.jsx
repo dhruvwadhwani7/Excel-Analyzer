@@ -64,6 +64,8 @@ const Login = () => {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="identifier" className="text-white text-sm font-medium mb-1 block">Email or Phone number</label>
+                  <p className="text-xs text-gray-400 mb-2">For phone numbers, enter without +91</p>
+                  
                   <input
                     id="identifier"
                     type="text"

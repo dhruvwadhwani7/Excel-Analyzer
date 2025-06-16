@@ -4,6 +4,7 @@ import { FaUsers, FaFileAlt, FaChartPie, FaDatabase, FaFileCsv, FaFileExcel,
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import '../styles/adminlayout.css'
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -244,7 +245,7 @@ const AdminDashboard = () => {
           <h2 className="text-xl font-bold text-white mb-4">Recent Uploaded Files</h2>
           <div className="space-y-4">
             {stats.recentActivity.files.map(file => (
-              <div key={file.id} className="flex items-center justify-between bg-[#1e293b] p-3 rounded-lg">
+              <div key={file.id} className="flex items-center justify-between bg-[#1e293b] p-3 rounded-lg file">
                 <div className="flex items-center">
                   {file.type === 'csv' ? 
                     <FaFileCsv className="text-green-500 mr-2" /> : 
@@ -252,13 +253,13 @@ const AdminDashboard = () => {
                   }
                   <div>
                     <p className="text-white">{file.name}</p>
-                    <p className="text-sm text-gray-400">{file.user}</p>
+                    <p className="text-sm text-gray-400">User : {file.user}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-400">{file.size}</p>
+                <div className="text-right file-date">
+                  <p className="text-sm text-gray-400">Size : {file.size}</p>
                   <p className="text-sm text-gray-400">
-                    {new Date(file.date).toLocaleDateString()}
+                    Date Uploaded : {new Date(file.date).toLocaleDateString()}
                   </p>
                 </div>
                  <button
@@ -278,18 +279,18 @@ const AdminDashboard = () => {
           <h2 className="text-xl font-bold text-white mb-4">Recent Generated Charts</h2>
           <div className="space-y-4">
             {stats.recentActivity.charts.map(chart => (
-              <div key={chart.id} className="flex items-center justify-between bg-[#1e293b] p-3 rounded-lg">
+              <div key={chart.id} className="flex items-center justify-between bg-[#1e293b] p-3 rounded-lg chart">
                 <div className="flex items-center">
                   <FaChartPie className="text-[#be185d] mr-2" />
                   <div>
                     <p className="text-white">{chart.title}</p>
-                    <p className="text-sm text-gray-400">{chart.user}</p>
+                    <p className="text-sm text-gray-400">User : {chart.user}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-400">{chart.type}</p>
+                <div className="text-right chart-date">
+                  <p className="text-sm text-gray-400">Type : {chart.type}</p>
                   <p className="text-sm text-gray-400">
-                    {new Date(chart.date).toLocaleDateString()}
+                    Date Created: {new Date(chart.date).toLocaleDateString()}
                   </p>
                 </div>
                 <button
@@ -307,7 +308,8 @@ const AdminDashboard = () => {
       </div>
 
       {/* Detailed Tables Section */}
-      <div className="mt-8 space-y-8">
+      <h1 className="text-2xl font-bold text-white mb-4 m-7 text-center">Tabular Information</h1>
+      <div className="mt-8 space-y-8 table-info">
         <div className="bg-[#0f172a] rounded-xl p-6">
           <h2 className="text-xl font-bold text-white mb-4">User Information</h2>
           <div className="overflow-x-auto">
@@ -317,7 +319,6 @@ const AdminDashboard = () => {
                   <th className="p-4 text-left text-white">Name</th>
                   <th className="p-4 text-left text-white">Email</th>
                   <th className="p-4 text-left text-white">Phone</th>
-                  <th className="p-4 text-left text-white">Role</th>
                   <th className="p-4 text-left text-white">Created At</th>
                   <th className="p-4 text-left text-white">Actions</th>
                 </tr>
@@ -328,7 +329,6 @@ const AdminDashboard = () => {
                     <td className="p-4 text-gray-300">{user.name}</td>
                     <td className="p-4 text-gray-300">{user.email}</td>
                     <td className="p-4 text-gray-300">{user.phoneNumber}</td>
-                    <td className="p-4 text-gray-300">{user.role}</td>
                     <td className="p-4 text-gray-300">
                       {new Date(user.createdAt).toLocaleString()}
                     </td>
@@ -355,9 +355,9 @@ const AdminDashboard = () => {
               <thead>
                 <tr>
                   <th className="p-4 text-left text-white">File Name</th>
-                  <th className="p-4 text-left text-white">Size</th>
-                  <th className="p-4 text-left text-white">Type</th>
                   <th className="p-4 text-left text-white">User</th>
+                  <th className="p-4 text-left text-white">Type</th>
+                  <th className="p-4 text-left text-white">Size</th>
                   <th className="p-4 text-left text-white">Upload Date</th>
                   <th className="p-4 text-left text-white">Actions</th>
                 </tr>
@@ -366,9 +366,9 @@ const AdminDashboard = () => {
                 {stats.detailedData?.files?.map((file) => (
                   <tr key={file._id} className="border-t border-gray-700">
                     <td className="p-4 text-gray-300">{file.fileName}</td>
-                    <td className="p-4 text-gray-300">{formatBytes(file.fileSize)}</td>
-                    <td className="p-4 text-gray-300">{file.fileType}</td>
                     <td className="p-4 text-gray-300">{file.userId?.name}</td>
+                    <td className="p-4 text-gray-300">{file.fileType}</td>
+                    <td className="p-4 text-gray-300">{formatBytes(file.fileSize)}</td>
                     <td className="p-4 text-gray-300">
                       {new Date(file.uploadDate).toLocaleString()}
                     </td>
@@ -395,8 +395,8 @@ const AdminDashboard = () => {
               <thead>
                 <tr>
                   <th className="p-4 text-left text-white">Chart Title</th>
-                  <th className="p-4 text-left text-white">Type</th>
                   <th className="p-4 text-left text-white">User</th>
+                  <th className="p-4 text-left text-white">Type</th>
                   <th className="p-4 text-left text-white">Created At</th>
                   <th className="p-4 text-left text-white">Actions</th>
                 </tr>
@@ -405,9 +405,8 @@ const AdminDashboard = () => {
                 {stats.detailedData?.charts?.map((chart) => (
                   <tr key={chart._id} className="border-t border-gray-700">
                     <td className="p-4 text-gray-300">{chart.title}</td>
-                    <td className="p-4 text-gray-300">{chart.chartType}</td>
                     <td className="p-4 text-gray-300">{chart.userId?.name}</td>
-                    <td className="p-4 text-gray-300">
+                    <td className="p-4 text-gray-300">{chart.chartType}</td>                    <td className="p-4 text-gray-300">
                       {new Date(chart.createdAt).toLocaleString()}
                     </td>
                     <td className="p-4">
@@ -423,6 +422,45 @@ const AdminDashboard = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Admin Information Banner */}
+      <div className="mt-8 bg-[#1e293b] rounded-xl p-6 border border-[#be185d]/20 admin-capabilities">
+        <h2 className="text-2xl font-bold text-white mb-4">Admin Access & Capabilities</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-lg font-semibold text-[#be185d] mb-2">User Management</h3>
+            <ul className="list-disc list-inside text-gray-300 space-y-2">
+              <li>View all registered users and their details</li>
+              <li>Delete user accounts</li>
+              <li>Monitor user activity and uploads</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-[#be185d] mb-2">File Operations</h3>
+            <ul className="list-disc list-inside text-gray-300 space-y-2">
+              <li>Access and review all uploaded files</li>
+              <li>Delete files from the system</li>
+              <li>Monitor file processing status</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-[#be185d] mb-2">Chart Management</h3>
+            <ul className="list-disc list-inside text-gray-300 space-y-2">
+              <li>View all generated charts</li>
+              <li>Delete charts</li>
+              <li>Track chart creation statistics</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-[#be185d] mb-2">System Overview</h3>
+            <ul className="list-disc list-inside text-gray-300 space-y-2">
+              <li>Monitor system storage usage</li>
+              <li>Track file processing statistics</li>
+              <li>View real-time system analytics</li>
+            </ul>
           </div>
         </div>
       </div>
