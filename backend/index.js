@@ -676,19 +676,5 @@ app.get('/api/user/profile', protect, async (req, res) => {
   }
 });
 
-// Serve static files from the React frontend app
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-// Handle client-side routing - AFTER all other routes
-app.get('*', (req, res) => {
-  // Don't interfere with API routes
-  if (req.url.startsWith('/api/')) {
-    return res.status(404).json({ success: false, message: 'API route not found' });
-  }
-  
-  // Send the React app's index.html for all other routes
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-});
-
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
