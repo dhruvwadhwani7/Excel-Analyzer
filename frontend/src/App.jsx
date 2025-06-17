@@ -12,6 +12,7 @@ import Upload from './pages/Upload'
 import Analytics from './pages/Analytics'
 import AdminDashboard from './pages/AdminDashboard'
 import { useEffect, useState } from 'react'
+import DynamicCmsPage from './pages/cmspage/DynamicXmsPage'
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -143,6 +144,7 @@ function App() {
                 </AdminRoute>
               }
             />
+            <Route path="/:slug" element={<DynamicCmsPage />} />
           </Routes>
           <ToastContainer position="bottom-right" autoClose={3000} />
         </div>
