@@ -18,4 +18,11 @@
     .admin-capabilities{
         font-size: 12px;
     }
+
+    .upload-file{
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        
+    }
 }

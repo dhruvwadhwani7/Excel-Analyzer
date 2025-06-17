@@ -11,6 +11,7 @@ const Navbar = () => {
   const navigate = useNavigate()
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true)
@@ -18,9 +19,13 @@ const Navbar = () => {
   }
 
   const handleLogoutConfirm = () => {
-    logout()
-    setShowLogoutModal(false)
-    navigate('/')
+    setIsLoggingOut(true)
+    setTimeout(() => {
+      logout()
+      setShowLogoutModal(false)
+      setIsLoggingOut(false)
+      navigate('/')
+    }, 1500) // Add a small delay to show the loading state
   }
 
   const handleLogoutCancel = () => {
@@ -29,6 +34,18 @@ const Navbar = () => {
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  if (isLoggingOut) {
+    return (
+      <div className="fixed inset-0 bg-[#020617] bg-opacity-90 flex items-center justify-center z-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-[#be185d] border-r-4 border-r-transparent"></div>
+          <p className="mt-4 text-white text-lg">Logging you out...</p>
+          <p className="text-gray-400 text-sm mt-2">See you again soon!</p>
+        </div>
+      </div>
+    )
   }
 
   return (

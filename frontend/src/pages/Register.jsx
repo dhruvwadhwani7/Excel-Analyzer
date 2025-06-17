@@ -55,6 +55,18 @@ const Register = () => {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-[#be185d] border-r-4 border-r-transparent"></div>
+          <p className="mt-4 text-white text-lg">Creating your account...</p>
+          <p className="text-gray-400 text-sm mt-2">This may take a few moments</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative bg-[#020617]">
       <div className="absolute inset-0 bg-gradient-to-b from-[#be185d]/20 to-transparent opacity-90 animate-gradient" />
