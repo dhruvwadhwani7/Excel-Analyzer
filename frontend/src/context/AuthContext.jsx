@@ -7,11 +7,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const initializeAuth = async () => {
+    const restoreSession = async () => {
       try {
-        const token = sessionStorage.getItem('userToken');
-        const userData = JSON.parse(sessionStorage.getItem('userData'));
-        
+        const token = sessionStorage.getItem('userToken') || localStorage.getItem('userToken');
+        const userData = JSON.parse(sessionStorage.getItem('userData') || localStorage.getItem('userData') || 'null');
+
         if (token && userData) {
           // Verify token validity with backend
           const response = await fetch('https://excel-analyzer-1.onrender.com/api/user/profile', {
@@ -28,16 +28,17 @@ export const AuthProvider = ({ children }) => {
             sessionStorage.removeItem('userData');
             localStorage.removeItem('userToken');
             localStorage.removeItem('userData');
+            setUser(null);
           }
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error('Session restoration error:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    initializeAuth();
+    restoreSession();
   }, [])
 
    const register = (userData, token, rememberMe) => {

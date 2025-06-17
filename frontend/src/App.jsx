@@ -56,37 +56,39 @@ const AdminRoute = ({ children }) => {
 
 function App() {
   const [authChecked, setAuthChecked] = useState(false)
+  const [initializingAuth, setInitializingAuth] = useState(true);
 
   useEffect(() => {
-    // Check authentication state on app load
-    const checkAuth = async () => {
-      const token = sessionStorage.getItem('userToken');
-      const userData = JSON.parse(sessionStorage.getItem('userData'));
-      
-      if (token && userData) {
-        try {
+    const initializeAuth = async () => {
+      try {
+        const token = sessionStorage.getItem('userToken');
+        const userData = JSON.parse(sessionStorage.getItem('userData'));
+        
+        if (token && userData) {
+          // Verify token with backend
           const response = await fetch('https://excel-analyzer-1.onrender.com/api/user/profile', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
           });
           
           if (!response.ok) {
             // Clear invalid session
             sessionStorage.removeItem('userToken');
             sessionStorage.removeItem('userData');
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('userData');
           }
-        } catch (error) {
-          console.error('Auth check failed:', error);
         }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        setInitializingAuth(false);
       }
-      setAuthChecked(true);
     };
 
-    checkAuth();
+    initializeAuth();
   }, []);
 
-  if (!authChecked) {
+  if (initializingAuth) {
     return (
       <div className="min-h-screen bg-[#020617] flex items-center justify-center">
         <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-[#be185d] border-r-4 border-r-transparent"></div>
