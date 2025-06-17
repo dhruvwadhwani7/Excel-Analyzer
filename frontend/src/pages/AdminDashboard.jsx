@@ -157,7 +157,7 @@ const AdminDashboard = () => {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-        <p className="text-gray-400">System Overview and Statistics</p>
+        <p className="text-gray-400">System Overview & Statistics</p>
       </div>
 
       {/* Summary Cards */}
