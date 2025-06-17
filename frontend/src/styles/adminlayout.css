@@ -1,0 +1,28 @@
+@media only screen and (max-width: 768px){
+     .file,.chart{
+        flex-direction: column;
+        gap: 10px;
+    }
+    .file-date,.chart-date{
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .table-info{
+        flex-direction: column;
+        font-size: 13px;
+        overflow: auto;
+    }
+
+    .admin-capabilities{
+        font-size: 12px;
+    }
+
+    .upload-file{
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        
+    }
+}

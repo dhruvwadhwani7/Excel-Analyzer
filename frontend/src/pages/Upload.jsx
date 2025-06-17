@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaFileUpload, FaFileCsv, FaFileExcel, FaSpinner } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
+import '../styles/adminlayout.css'
 
 const Upload = () => {
   const [files, setFiles] = useState([]);
@@ -114,7 +115,8 @@ const Upload = () => {
         size: (data.file.fileSize / 1024).toFixed(2) + ' KB',
         columns: data.file.columns,
         rowCount: data.file.rowCount,
-        preview: data.file.preview
+        preview: data.file.preview,
+        type : data.file.fileType
       };
       
       setFiles(prev => [fileData, ...prev]);
@@ -196,7 +198,7 @@ const Upload = () => {
         <h2 className="text-xl font-bold text-white mb-4">Recent Uploads</h2>
         <div className="divide-y divide-gray-800">
           {files.map(file => (
-            <div key={file.id} className="py-4 flex items-center justify-between">
+            <div key={file.id} className="py-4 flex items-center justify-between upload-file">
               <div className="flex items-center">
                 {file.name.endsWith('.csv') ? (
                   <FaFileCsv className="text-green-500 mr-3" />
@@ -205,7 +207,8 @@ const Upload = () => {
                 )}
                 <div>
                   <p className="text-white">{file.name}</p>
-                  <p className="text-sm text-gray-400">{file.date}</p>
+                  <p className="text-sm text-gray-400">Type : {file.type}</p>
+                  <p className="text-sm text-gray-400">Date Uploaded : {file.date}</p>
                 </div>
               </div>
               <span className="px-3 py-1 rounded-full text-sm bg-green-500/20 text-green-500">
