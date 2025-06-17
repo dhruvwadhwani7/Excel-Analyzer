@@ -653,5 +653,28 @@ app.delete('/api/admin/users/:id', protect, adminOnly, async (req, res) => {
   }
 });
 
+// Add this new route for token verification
+app.get('/api/user/profile', protect, async (req, res) => {
+  try {
+    // Since protect middleware already verifies the token, 
+    // we just need to send back a success response
+    res.json({
+      success: true,
+      user: {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        role: req.user.role,
+        phoneNumber: req.user.phoneNumber
+      }
+    });
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: 'Invalid token'
+    });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

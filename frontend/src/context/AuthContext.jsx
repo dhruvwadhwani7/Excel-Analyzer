@@ -7,32 +7,37 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const initializeAuth = () => {
-      // Try to get auth data from sessionStorage first
-      const sessionUser = JSON.parse(sessionStorage.getItem('userData'))
-      const sessionToken = sessionStorage.getItem('userToken')
-      
-      if (sessionUser && sessionToken) {
-        setUser(sessionUser)
-        setLoading(false)
-        return
-      }
+    const initializeAuth = async () => {
+      try {
+        const token = sessionStorage.getItem('userToken');
+        const userData = JSON.parse(sessionStorage.getItem('userData'));
+        
+        if (token && userData) {
+          // Verify token validity with backend
+          const response = await fetch('https://excel-analyzer-1.onrender.com/api/user/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
 
-      // If not in session, check localStorage
-      const localUser = JSON.parse(localStorage.getItem('userData'))
-      const localToken = localStorage.getItem('userToken')
-      
-      if (localUser && localToken) {
-        // Restore to session storage
-        sessionStorage.setItem('userData', JSON.stringify(localUser))
-        sessionStorage.setItem('userToken', localToken)
-        setUser(localUser)
+          if (response.ok) {
+            setUser(userData);
+          } else {
+            // Clear invalid session data
+            sessionStorage.removeItem('userToken');
+            sessionStorage.removeItem('userData');
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('userData');
+          }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false)
-    }
+    };
 
-    initializeAuth()
+    initializeAuth();
   }, [])
 
    const register = (userData, token, rememberMe) => {
