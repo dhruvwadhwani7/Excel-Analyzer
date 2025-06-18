@@ -130,7 +130,7 @@ const Navbar = () => {
                   <Link to="/dashboard" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
                     <FaHome className="inline mr-2" /> Home
                   </Link>
-                  <Link to="/chart" onClick={toggleMobileMenu} className="px-4 py-2 bg-[#be185d] text-white hover:bg-[#be185d]/90">
+                  <Link to="/charts" onClick={toggleMobileMenu} className="px-4 py-2 bg-[#be185d] text-white hover:bg-[#be185d]/90">
                     <FaChartBar className="inline mr-2" /> Charts
                   </Link>
                   <Link to="/analytics" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
