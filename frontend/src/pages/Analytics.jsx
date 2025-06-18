@@ -736,11 +736,34 @@ const Analytics = () => {
         return null;
       }
 
+      // Format chart data properly
       const chartData = fileData.rows.map(row => ({
-        x: row[xAxis],
-        y: row[yAxis],
-        ...(dimension === '3d' && zAxis ? { z: row[zAxis] } : {})
-      }));
+        x: row[xAxis]?.toString() || '',
+        y: parseFloat(row[yAxis]) || 0,
+        ...(dimension === '3d' && zAxis ? { z: parseFloat(row[zAxis]) || 0 } : {})
+      })).filter(d => d.x && !isNaN(d.y));
+
+      if (chartData.length === 0) {
+        toast.error('No valid data points found');
+        return null;
+      }
+
+      // Get chart image
+      let chartImage;
+      try {
+        if (dimension === '2d' && canvasRef.current) {
+          chartImage = canvasRef.current.toDataURL('image/jpeg', 0.7);
+        } else if (chartRef.current) {
+          const canvas = await html2canvas(chartRef.current);
+          chartImage = canvas.toDataURL('image/jpeg', 0.7);
+        } else {
+          throw new Error('Chart element not found');
+        }
+      } catch (e) {
+        console.error('Error capturing chart image:', e);
+        toast.error('Failed to capture chart image');
+        return null;
+      }
 
       const payload = {
         fileId: selectedFile,
@@ -751,8 +774,19 @@ const Analytics = () => {
         yAxis,
         zAxis: dimension === '3d' ? zAxis : undefined,
         dimension,
-        dataPreview: fileData?.preview || []
+        dataPreview: fileData?.preview?.slice(0, 10) || [],
+        image: chartImage,
+        chartConfig: {
+          chartType,
+          dimension,
+          xAxis,
+          yAxis,
+          zAxis,
+          title: chartTitle
+        }
       };
+
+      console.log('Saving chart with data length:', chartData.length); // Debug log
 
       const token = sessionStorage.getItem('userToken');
       const response = await fetch('https://excel-analyzer-1.onrender.com/api/chart/save-temp', {
@@ -764,13 +798,15 @@ const Analytics = () => {
         body: JSON.stringify(payload)
       });
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to save chart');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save chart');
       }
 
+      const result = await response.json();
+      toast.success('Chart saved successfully');
       return result;
+
     } catch (error) {
       console.error('Chart save error:', error);
       toast.error(error.message || 'Error saving chart configuration');
@@ -896,15 +932,6 @@ const Analytics = () => {
         
         <h1 className="text-2xl font-bold text-white mb-6">Data Analytics</h1>
         
-        {/* Add this notification message */}
-        <div className="mb-6 text-yellow-400 bg-yellow-900/30 p-4 rounded-lg">
-          <p>Important Notes:</p>
-          <ul className="list-disc list-inside mt-2">
-            <li>Charts will be automatically deleted after 12 hours from their creation time</li>
-            <li>This deletion occurs even if the source file remains in the database</li>
-            <li>Please save or export important charts before they expire</li>
-          </ul>
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="space-y-4">
@@ -1046,9 +1073,9 @@ const Analytics = () => {
 
           <button
             onClick={handleChartSave}
-            className="w-full sm:w-auto px-4 py-2 bg-[#1e293b] text-white rounded-lg hover:bg-[#1e293b]/80"
+            className="w-full sm:w-auto px-4 py-2 bg-[#be185d] text-white rounded-lg hover:bg-[#1e293b]/80"
           >
-            Save Chart
+            Save Your Chart
           </button>
         </div>
         <div ref={chartRef} className="bg-[#1e293b] rounded-lg p-4 min-h-[400px] relative">
@@ -1058,7 +1085,7 @@ const Analytics = () => {
             className="absolute hidden bg-[#be185d] text-white px-2 py-1 rounded text-sm transform -translate-x-1/2 -translate-y-full pointer-events-none z-50"
             style={{ 
               zIndex: 1000,
-              minWidth: '80px',
+              minWidth: '10px',
               textAlign: 'center',
               whiteSpace: 'pre-line'
             }}
@@ -1067,6 +1094,15 @@ const Analytics = () => {
           </div>
         </div>
       </div>
+      {/* Add this notification message */}
+        <div className="mb-6 text-yellow-400 bg-yellow-900/30 p-4 rounded-lg">
+          <p>Important Notes:</p>
+          <ul className="list-disc list-inside mt-2">
+            <li>Charts will be automatically deleted after 12 hours from their creation time</li>
+            <li>This deletion occurs even if the source file remains in the database</li>
+            <li>Please save or export important charts before they expire</li>
+          </ul>
+        </div>
     </div>
   );
 };

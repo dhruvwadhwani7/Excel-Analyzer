@@ -9,6 +9,7 @@ const Upload = () => {
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [recentFiles, setRecentFiles] = useState([]);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -116,10 +117,12 @@ const Upload = () => {
         columns: data.file.columns,
         rowCount: data.file.rowCount,
         preview: data.file.preview,
-        type : data.file.fileType
+        type: data.file.fileType,
+        uploadTimestamp: Date.now() // Add timestamp
       };
       
       setFiles(prev => [fileData, ...prev]);
+      setRecentFiles(prev => [fileData, ...prev].slice(0, 3)); // Keep only last 3 files
       toast.success(`File uploaded successfully! ${fileData.rowCount} rows processed.`);
     } catch (error) {
       if (error.message === 'Authentication required') {
@@ -148,6 +151,12 @@ const Upload = () => {
       e.target.value = '';
     }
   }, []);
+
+  // Add function to check if file is recent (less than 1 hour old)
+  const isRecentFile = (uploadTimestamp) => {
+    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+    return uploadTimestamp > oneHourAgo;
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 animate-fadeIn">
@@ -196,9 +205,33 @@ const Upload = () => {
       {/* Recent Uploads */}
       <div className="bg-[#0f172a] rounded-xl p-6">
         <h2 className="text-xl font-bold text-white mb-4">Recent Uploads</h2>
+
+        {/* Add Info Card */}
+        <div className="mb-6 bg-[#1e293b] rounded-lg p-4 border border-[#be185d]/20">
+          <p className="text-white mb-2">
+            View all your uploaded files and detailed statistics on your Dashboard
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <button
+              onClick={() => navigate('/analytics')}
+              className="px-4 py-2 bg-[#be185d] text-white rounded-lg hover:bg-[#be185d]/90 transition-colors flex items-center justify-center"
+            >
+              Analyze your Uploaded files
+            </button>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-4 py-2 bg-[#1e293b] text-white rounded-lg hover:bg-[#334155] border border-[#be185d]/20 transition-colors flex items-center justify-center"
+            >
+              Go to Dashbord
+            </button>
+          </div>
+        </div>
+
         <div className="divide-y divide-gray-800">
-          {files.map(file => (
-            <div key={file.id} className="py-4 flex items-center justify-between upload-file">
+          {files.slice(0, 3).map(file => (
+            <div key={file.id} className={`py-4 flex items-center justify-between upload-file ${
+              isRecentFile(file.uploadTimestamp) ? 'bg-[#be185d]/10 rounded-lg' : ''
+            }`}>
               <div className="flex items-center">
                 {file.name.endsWith('.csv') ? (
                   <FaFileCsv className="text-green-500 mr-3" />
@@ -206,7 +239,12 @@ const Upload = () => {
                   <FaFileExcel className="text-blue-500 mr-3" />
                 )}
                 <div>
-                  <p className="text-white">{file.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-white">{file.name}</p>
+                    {isRecentFile(file.uploadTimestamp) && (
+                      <span className="bg-[#be185d] text-white text-xs px-2 py-1 rounded">NEW</span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-400">Type : {file.type}</p>
                   <p className="text-sm text-gray-400">Date Uploaded : {file.date}</p>
                 </div>

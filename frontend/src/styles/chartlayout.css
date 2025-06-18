@@ -1,0 +1,55 @@
+.date-and-download{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+.download-chart{
+    height: 50px;
+}
+.manage-chart{
+    margin-top: 20px;
+}
+
+
+
+@media only screen and (max-width: 768px){
+    .chart-filter{
+        display: flex;
+        flex-direction: row;
+    }
+    .search-bar{
+        width: 40vw;
+        margin: auto;
+    }
+    
+    .chart-date-filter{
+        font-size: small;
+        gap: 10px;
+        margin: auto;
+        
+    }
+    .date-and-download{
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        
+    }
+    .date-from,.date-to{
+        width: 10vw;
+    }
+
+    .download-chart{
+        font-size: small;
+        padding: 10px;
+        height: 40px;
+    }
+    .download-png-button{
+        font-size: 24px;
+        margin-right: 15px;
+    }
+    .manage-chart{
+        width: 40vw;
+        margin: auto;
+        margin-top: 20px;
+    }
+}

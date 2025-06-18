@@ -67,6 +67,9 @@ const Navbar = () => {
                     <Link to="/dashboard" className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors">
                       <FaHome className="mr-2" /> Home
                     </Link>
+                    <Link to="/charts" className="flex items-center px-4 py-2 rounded-md bg-[#be185d] text-white hover:bg-[#be185d]/90 transition-all transform hover:scale-105">
+                      <FaChartBar className="mr-2" /> Charts
+                    </Link>
                     <Link to="/analytics" className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors">
                       <FaChartBar className="mr-2" /> Analytics
                     </Link>
@@ -127,10 +130,13 @@ const Navbar = () => {
                   <Link to="/dashboard" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
                     <FaHome className="inline mr-2" /> Home
                   </Link>
+                  <Link to="/chart" onClick={toggleMobileMenu} className="px-4 py-2 bg-[#be185d] text-white hover:bg-[#be185d]/90">
+                    <FaChartBar className="inline mr-2" /> Charts
+                  </Link>
                   <Link to="/analytics" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
                     <FaChartBar className="inline mr-2" /> Analytics
                   </Link>
-                  <Link to="/upload" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
+                  <Link to="/upload" onClick={toggleMobileMenu} className="px-4 py-2 bg-[#be185d] text-white hover:bg-[#be185d]/90">
                     <FaFileUpload className="inline mr-2" /> Upload File
                   </Link>
                 </>

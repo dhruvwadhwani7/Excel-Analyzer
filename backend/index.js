@@ -19,13 +19,14 @@ const app = express();
 
 // Update CORS configuration
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://excelanalyzer.netlify.app'],
+  origin: ['http://localhost:5173' , 'https://excelanalyzer.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
-app.use(express.json());
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb', extended: true}));
 
 // Initialize TTL cleanup after MongoDB connection
 setupMongoDB()
@@ -92,7 +93,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage, 
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+  limits: { fileSize: 50 * 1024 * 1024 } // Increase to 50MB
 });
 
 // File upload route with error handling
@@ -353,44 +354,85 @@ app.get('/api/files/stats', protect, async (req, res) => {
 // Chart routes
 app.post('/api/chart/save-temp', protect, async (req, res) => {
   try {
-    const { chartType, title, data, xAxis, yAxis, zAxis, dimension, fileId, dataPreview } = req.body;
+    const { chartType, title, data, xAxis, yAxis, zAxis, dimension, fileId, dataPreview, image } = req.body;
     
-    // Validate required fields
-    if (!chartType || !data || !xAxis || !yAxis) {
+    // Log received data for debugging
+    console.log('Received chart data:', {
+      chartType,
+      dataLength: data?.length,
+      hasData: !!data,
+      isArray: Array.isArray(data)
+    });
+
+    // Enhanced validation
+    if (!chartType || !xAxis || !yAxis) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required chart data'
+        message: 'Missing required chart parameters (type, axes)'
       });
     }
 
-    const is3D = ['column3d', 'bar3d', 'line3d', 'scatter3d', 'area3d'].includes(chartType);
-    
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Chart data is required and must be an array'
+      });
+    }
+
+    // Validate data format
+    const validData = data.every(point => 
+      point && typeof point === 'object' && 
+      'x' in point && 'y' in point &&
+      (dimension !== '3d' || 'z' in point)
+    );
+
+    if (!validData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid data format - each point must have x, y (and z for 3D) coordinates'
+      });
+    }
+
+    // Create and save chart
     const chart = new Chart({
       userId: req.user._id,
-      fileId: fileId || null,
+      fileId,
       chartType,
       title: title || 'Untitled Chart',
       data,
       xAxis,
       yAxis,
-      zAxis: is3D ? zAxis : undefined,
-      dimension: is3D ? '3d' : '2d',
-      dataPreview,
-      createdAt: new Date()
+      zAxis,
+      dimension,
+      dataPreview: dataPreview?.slice(0, 10) || [],
+      image,
+      chartConfig: {
+        chartType,
+        dimension,
+        xAxis,
+        yAxis,
+        zAxis,
+        title
+      }
     });
     
     await chart.save();
 
     res.json({ 
       success: true, 
-      chart: chart.toObject(),
-      message: 'Chart saved successfully'
+      chart: {
+        _id: chart._id,
+        title: chart.title,
+        chartType: chart.chartType,
+        dimension: chart.dimension,
+        createdAt: chart.createdAt
+      }
     });
   } catch (error) {
     console.error('Chart save error:', error);
     res.status(400).json({
       success: false,
-      message: error.message || 'Error saving chart configuration'
+      message: error.message || 'Error saving chart'
     });
   }
 });
@@ -435,15 +477,19 @@ app.get('/api/chart/:chartId', protect, async (req, res) => {
   }
 });
 
-// Add this route to get saved charts
-app.get('/api/chart/saved', protect, async (req, res) => {
+// Fix the route path for saved charts
+app.get('/api/charts/saved', protect, async (req, res) => {
   try {
     const charts = await Chart.find({ userId: req.user._id })
       .sort({ createdAt: -1 })
-      .limit(10);
+      .select('title chartType dimension createdAt image');
+      
     res.json({ success: true, charts });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
   }
 });
 

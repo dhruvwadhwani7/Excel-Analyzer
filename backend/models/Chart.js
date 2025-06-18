@@ -8,7 +8,6 @@ const chartSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: function(type) {
-        // Auto-set dimension based on chart type
         const is3D = ['column3d', 'bar3d', 'line3d', 'scatter3d', 'area3d'].includes(type);
         this.dimension = is3D ? '3d' : '2d';
         return true;
@@ -20,24 +19,49 @@ const chartSchema = new mongoose.Schema({
   xAxis: { type: String, required: true },
   yAxis: { type: String, required: true },
   zAxis: String,
+  data: {
+    type: Array,
+    required: true,
+    validate: {
+      validator: function(v) {
+        return Array.isArray(v) && v.length > 0 && v.every(point => 
+          point && typeof point === 'object' &&
+          point.hasOwnProperty('x') && 
+          point.hasOwnProperty('y') &&
+          (!this.dimension || this.dimension !== '3d' || point.hasOwnProperty('z'))
+        );
+      },
+      message: 'Chart data must be an array of points with x, y (and z for 3D) coordinates'
+    }
+  },
   dataPreview: [Object],
   createdAt: { 
     type: Date, 
     default: () => new Date(Date.now() + (5.5 * 60 * 60 * 1000)), // Add IST offset
     expires: 43200 // 12 hours in seconds
+  },
+  image: {
+    type: String,
+    required: true
+  },
+  chartConfig: {
+    type: Object,
+    required: true
+  },
+  downloadCount: {
+    type: Number,
+    default: 0
   }
 });
 
-// Update TTL index with correct expiry time
+// Add indexes
 chartSchema.index({ createdAt: 1 }, { 
   expireAfterSeconds: 43200,
   background: true 
 });
-
-// Add index for faster querying by fileId
 chartSchema.index({ fileId: 1 });
 
-// Add validation to ensure file exists
+// Pre-save middleware
 chartSchema.pre('save', async function(next) {
   try {
     const File = require('./File');
@@ -45,18 +69,27 @@ chartSchema.pre('save', async function(next) {
     if (!file) {
       throw new Error('Referenced file does not exist');
     }
-    // Align chart expiry with file expiry
-    const fileExpiry = new Date(file.uploadDate.getTime() + 43200000); // 12 hours
+    
+    const fileExpiry = new Date(file.uploadDate.getTime() + 43200000);
     if (this.createdAt > fileExpiry) {
       throw new Error('Chart cannot outlive its file');
     }
+
+    // Limit data points and preview
+    if (this.data && this.data.length > 1000) {
+      this.data = this.data.slice(0, 1000);
+    }
+    if (this.dataPreview && this.dataPreview.length > 10) {
+      this.dataPreview = this.dataPreview.slice(0, 10);
+    }
+
     next();
   } catch (error) {
     next(error);
   }
 });
 
-// Add a method to get IST time
+// Methods
 chartSchema.methods.getISTTime = function() {
   return new Date(this.createdAt.getTime() + (5.5 * 60 * 60 * 1000));
 };
