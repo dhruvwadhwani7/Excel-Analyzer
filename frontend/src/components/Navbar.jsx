@@ -1,199 +1,83 @@
+
 import { Link, useNavigate } from 'react-router-dom'
-import {
-  FaUserCircle, FaUserPlus, FaChartLine, FaFileUpload,
-  FaHome, FaCheck, FaTimes, FaChartBar, FaBars
-} from 'react-icons/fa'
+import { FaUserCircle, FaUserPlus, FaUpload, FaTachometerAlt } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext'
-import { useState } from 'react'
+import LogoImage from '../assets/Excel-Analyze-logo.png'
 
 const Navbar = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [showLogoutModal, setShowLogoutModal] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const handleLogoutClick = () => {
-    setShowLogoutModal(true)
-    setIsMobileMenuOpen(false)
-  }
-
-  const handleLogoutConfirm = () => {
-    setIsLoggingOut(true)
-    setTimeout(() => {
-      logout()
-      setShowLogoutModal(false)
-      setIsLoggingOut(false)
-      navigate('/')
-    }, 1500) // Add a small delay to show the loading state
-  }
-
-  const handleLogoutCancel = () => {
-    setShowLogoutModal(false)
-  }
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
-  }
-
-  if (isLoggingOut) {
-    return (
-      <div className="fixed inset-0 bg-[#020617] bg-opacity-90 flex items-center justify-center z-50">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-[#be185d] border-r-4 border-r-transparent"></div>
-          <p className="mt-4 text-white text-lg">Logging you out...</p>
-          <p className="text-gray-400 text-sm mt-2">See you again soon!</p>
-        </div>
-      </div>
-    )
+  const handleLogout = () => {
+    logout()
+    navigate('/')
   }
 
   return (
-    <>
-      <nav className="bg-[#0f172a] border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 ">
-          <div className="flex justify-between h-16 items-center">
-            {/* Left section with logo */}
-            <div className="flex items-center space-x-4">
-              <Link to={user?.role === 'admin' ? "/admin" : "/"} className="flex items-center">
-                <span className="text-xl font-bold text-white hover:text-[#be185d] transition-colors">
-                  Excel Analyzer
-                </span>
-              </Link>
-              {/* Desktop Nav (hidden on small screens) */}
-              <div className="hidden lg:flex items-center space-x-4">
-                {user && user.role !== 'admin' && (
-                  <>
-                    <Link to="/dashboard" className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors">
-                      <FaHome className="mr-2" /> Home
-                    </Link>
-                    <Link to="/analytics" className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors">
-                      <FaChartBar className="mr-2" /> Analytics
-                    </Link>
-                    <Link to="/upload" className="flex items-center px-4 py-2 rounded-md bg-[#be185d] text-white hover:bg-[#be185d]/90 transition-all transform hover:scale-105">
-                      <FaFileUpload className="mr-2" /> Upload File
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
+    <nav className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 backdrop-blur-sm bg-opacity-90 shadow-md sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex justify-between items-center h-16 text-white">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            <img src={LogoImage} alt="Excel Analyzer" className="h-8" />
+            <span className="text-2xl font-semibold tracking-wide">Excel Analyzer</span>
+          </Link>
 
-            {/* Right section */}
-            <div className="hidden lg:flex items-center space-x-4">
-              {user ? (
-                <>
-                  {user.role !== 'admin' && (
-                    <>
-                      <Link to="/dashboard" className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors">
-                        <FaChartLine className="mr-2" /> Dashboard
-                      </Link>
-                      <Link to="/profile" className="flex items-center px-4 py-2 rounded-md text-white hover:text-[#be185d] transition-colors">
-                        <FaUserCircle className="mr-2" /> Profile
-                      </Link>
-                    </>
-                  )}
-                  <button
-                    onClick={handleLogoutClick}
-                    className="flex items-center px-4 py-2 rounded-md border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link to="/login" className="flex items-center px-6 py-2 rounded-md text-white hover:text-[#be185d] transition-colors">
-                    <FaUserCircle className="mr-2" /> Sign In
-                  </Link>
-                  <Link to="/register" className="flex items-center px-6 py-2 rounded-md bg-[#be185d] text-white hover:bg-[#be185d]/90 transition-all transform hover:scale-105">
-                    <FaUserPlus className="mr-2" /> Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
+          {/* Navigation */}
+          <div className="flex items-center space-x-5 text-sm font-medium">
+            <Link to="/features" className="hover:text-yellow-300 transition-all duration-300">
+              Features
+            </Link>
+            <Link to="/upload" className="hover:text-yellow-300 flex items-center gap-1 transition-all duration-300">
+              <FaUpload />
+              Upload
+            </Link>
 
-            {/* Mobile Menu Toggle Button */}
-            <div className="lg:hidden">
-              <button onClick={toggleMobileMenu} className="text-white text-xl">
-                {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Menu */}
-          {isMobileMenuOpen && (
-            <div className="lg:hidden flex flex-col space-y-2 pb-4">
-              {user && user.role !== 'admin' && (
-                <>
-                  <Link to="/dashboard" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
-                    <FaHome className="inline mr-2" /> Home
-                  </Link>
-                  <Link to="/analytics" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
-                    <FaChartBar className="inline mr-2" /> Analytics
-                  </Link>
-                  <Link to="/upload" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
-                    <FaFileUpload className="inline mr-2" /> Upload File
-                  </Link>
-                </>
-              )}
-              {user ? (
-                <>
-                  {user.role !== 'admin' && (
-                    <>
-                      <Link to="/dashboard" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
-                        <FaChartLine className="inline mr-2" /> Dashboard
-                      </Link>
-                      <Link to="/profile" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
-                        <FaUserCircle className="inline mr-2" /> Profile
-                      </Link>
-                    </>
-                  )}
-                  <button
-                    onClick={handleLogoutClick}
-                    className="flex items-center w-fit ml-[17px] px-4 py-2 rounded-md border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link to="/login" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
-                    <FaUserCircle className="inline mr-2" /> Sign In
-                  </Link>
-                  <Link to="/register" onClick={toggleMobileMenu} className="text-white px-4 py-2 hover:text-[#be185d]">
-                    <FaUserPlus className="inline mr-2" /> Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      </nav>
-
-      {/* Logout Confirmation Modal */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[#0f172a] rounded-xl p-6 max-w-sm w-full mx-4 animate-fadeIn">
-            <h3 className="text-xl font-bold text-white mb-4">Confirm Logout</h3>
-            <p className="text-gray-400 mb-6">Are you sure you want to logout?</p>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={handleLogoutCancel}
-                className="flex items-center px-4 py-2 rounded-md bg-[#1e293b] text-white hover:bg-[#1e293b]/80 transition-all"
-              >
-                <FaTimes className="mr-2" /> No, Cancel
-              </button>
-              <button
-                onClick={handleLogoutConfirm}
-                className="flex items-center px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600 transition-all"
-              >
-                <FaCheck className="mr-2" /> Yes, Logout
-              </button>
-            </div>
+            {user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="px-4 py-1.5 rounded-full bg-white text-indigo-700 hover:bg-gray-100 transition-all duration-300 flex items-center gap-1"
+                >
+                  <FaTachometerAlt />
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-1.5 rounded-full bg-red-500 hover:bg-red-600 transition-all duration-300 text-white"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Compact Auth Buttons */}
+                <Link
+                  to="/login"
+                  className="px-4 py-1.5 rounded-full border border-white text-white font-medium hover:bg-white hover:text-indigo-700 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                >
+                    <FaUserCircle />
+                    Sign In
+                </Link>
+                <Link
+                   to="/register"
+                   className="px-4 py-1.5 rounded-full bg-gradient-to-r from-yellow-400 to-orange-400 text-indigo-900 font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                >
+                   <FaUserPlus />
+                   Sign Up
+                </Link>
+              </>
+            )}
           </div>
         </div>
-      )}
-    </>
+      </div>
+    </nav>
   )
 }
 
 export default Navbar
+
+
+
+
+

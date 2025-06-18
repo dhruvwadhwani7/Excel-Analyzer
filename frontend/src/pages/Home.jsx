@@ -1,213 +1,192 @@
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+
+import { useState } from 'react';
+import {
+  FaUpload,
+  FaChartBar,
+  FaFileAlt,
+  FaCog,
+  FaMagic,
+  FaLightbulb,
+  FaChevronDown,
+  FaChevronUp,
+} from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const steps = [
+  {
+    title: 'Upload your Excel file',
+    description:
+      'Easily upload your Excel file using the Upload button or drag and drop. Supported formats: .xls, .xlsx, .csv.',
+    icon: <FaUpload className="text-blue-600" size={24} />,
+  },
+  {
+    title: 'Analyze and generate reports',
+    description:
+      'Our analyzer processes your data quickly, creating insightful charts and detailed reports automatically.',
+    icon: <FaChartBar className="text-green-600" size={24} />,
+  },
+  {
+    title: 'Customize and share',
+    description:
+      'Tailor your visual reports with various customization options, then download or share with your team seamlessly.',
+    icon: <FaFileAlt className="text-purple-600" size={24} />,
+  },
+];
 
 const Home = () => {
-  const navigate = useNavigate();
+  const [activeIndex, setActiveIndex] = useState(null);
 
-  const handleUploadClick = () => {
-    const userToken = sessionStorage.getItem('userToken');
-    if (userToken) {
-      navigate('/dashboard');
-    } else {
-      toast.info('Please sign in to upload files', {
-        position: 'top-center',
-      });
-      navigate('/login');
-    }
+  const toggleStep = (index) => {
+    setActiveIndex(activeIndex === index ? null : index);
   };
 
   return (
-    <div className="relative bg-[#020617] overflow-x-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#be185d]/20 to-transparent opacity-90 animate-gradient" />
-      
-      {/* Hero Section */}
-      <div className="relative min-h-[calc(100vh-64px)] flex flex-col items-center animate-fadeIn">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-          <h1 className="text-4xl sm:text-6xl font-bold text-white mb-8 tracking-tight">
-            Transform Your Excel Data into Beautiful Charts
-          </h1>
-          <p className="text-xl sm:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            Visualize your data like never before with our powerful Excel analysis tool.
-            Turn complex spreadsheets into meaningful insights instantly.
+    <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col">
+      <div className="max-w-7xl mx-auto px-6 py-16 flex-grow">
+        {/* Hero Section */}
+        <motion.section
+          initial={{ opacity: 0, y: -30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: 'easeOut' }}
+          className="text-center mb-20 max-w-4xl mx-auto"
+        >
+          <h1 className="text-5xl font-extrabold text-navy-900 mb-4">Welcome to Excel Analyzer</h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Transform your Excel files into insightful, interactive charts and reports — fast and effortlessly.
           </p>
-          <button
-            onClick={handleUploadClick}
-            className="px-8 py-4 bg-[#be185d] text-white rounded-lg font-bold text-lg 
-            hover:bg-[#be185d]/90 transition-all duration-300 transform hover:scale-105 
-            hover:shadow-xl hover:shadow-[#be185d]/30 active:scale-95"
-          >
-            Upload CSV or Excel files
+          <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold shadow-md hover:scale-105 transition-transform">
+            Get Started
           </button>
-        </div>
+        </motion.section>
+
+        {/* Stats Cards */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-20 max-w-5xl mx-auto">
+          {[FaUpload, FaChartBar, FaFileAlt].map((Icon, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.4, duration: 0.8, ease: 'easeOut' }}
+              className={`bg-white rounded-xl shadow-lg p-8 border-l-8 ${
+                i === 0 ? 'border-blue-600' : i === 1 ? 'border-green-600' : 'border-purple-600'
+              } hover:shadow-xl transition-shadow`}
+            >
+              <div className="flex justify-center mb-4 text-blue-600">
+                <Icon size={40} />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                {i === 0
+                  ? 'Upload Excel File'
+                  : i === 1
+                  ? 'Charts Created'
+                  : 'Files Uploaded'}
+              </h3>
+              <p className={`text-${i === 0 ? 'gray-600' : '4xl font-bold text-gray-800'}`}>
+                {i === 0 ? 'Easily upload your Excel spreadsheets and start your analysis immediately.' : '0'}
+              </p>
+            </motion.div>
+          ))}
+        </section>
 
         {/* Features Section */}
-        <div className="w-full bg-[#0f172a]/50 py-24 animate-slideUp">
-          <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-xl bg-[#1e293b]/40 backdrop-blur-sm transform 
-            hover:scale-105 transition-all duration-300 hover:shadow-2xl 
-            hover:shadow-[#be185d]/20 hover:bg-[#1e293b]/60 group animate-fadeIn">
-              <h3 className="text-2xl font-bold text-white mb-4">Easy Upload</h3>
-              <p className="text-gray-300">
-                Simply drag and drop your Excel or CSV files to get started
-              </p>
-            </div>
-            <div className="p-6 rounded-xl bg-[#1e293b]/40 backdrop-blur-sm transform 
-            hover:scale-105 transition-all duration-300 hover:shadow-2xl 
-            hover:shadow-[#be185d]/20 hover:bg-[#1e293b]/60 group animate-fadeIn">
-              <h3 className="text-2xl font-bold text-white mb-4">Smart Analysis</h3>
-              <p className="text-gray-300">
-                Advanced AI-powered analysis to generate the most relevant charts
-              </p>
-            </div>
-            <div className="p-6 rounded-xl bg-[#1e293b]/40 backdrop-blur-sm transform 
-            hover:scale-105 transition-all duration-300 hover:shadow-2xl 
-            hover:shadow-[#be185d]/20 hover:bg-[#1e293b]/60 group animate-fadeIn">
-              <h3 className="text-2xl font-bold text-white mb-4">Export Anywhere</h3>
-              <p className="text-gray-300">
-                Download your visualizations in multiple formats
-              </p>
-            </div>
+        <section className="max-w-5xl mx-auto mb-20 px-4">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Key Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {[FaMagic, FaCog, FaLightbulb].map((Icon, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.4, duration: 0.8, ease: 'easeOut' }}
+                className="flex space-x-4 bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow"
+              >
+                <Icon size={36} className={`${i === 0 ? 'text-blue-600' : i === 1 ? 'text-green-600' : 'text-purple-600'} mt-1`} />
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                    {i === 0
+                      ? 'Automated Insights'
+                      : i === 1
+                      ? 'Customizable Dashboards'
+                      : 'Smart Recommendations'}
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    {i === 0
+                      ? 'Generate meaningful insights automatically from your raw Excel data.'
+                      : i === 1
+                      ? 'Design dashboards tailored to your unique data visualization needs.'
+                      : 'Receive intelligent suggestions to improve your data presentations.'}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
           </div>
-        </div>
+        </section>
 
-        {/* Call to Action Section */}
-        <div className="w-full py-24 text-center">
-          <div className="max-w-3xl mx-auto px-4">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-8">
-              Ready to transform your data?
-            </h2>
-            <p className="text-xl text-gray-300 mb-8">
-              Join thousands of users who have already discovered the power of our Excel analysis tool.
-            </p>
-            <button
-              onClick={() => navigate('/register')}
-              className="px-8 py-4 bg-white text-[#be185d] rounded-lg font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105"
-            >
-              Get Started Now
-            </button>
+        {/* Accordion Section (How It Works) */}
+        <section className="max-w-3xl mx-auto px-4 mb-20">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">How It Works</h2>
+          <div className="space-y-4">
+            {steps.map((step, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow"
+              >
+                <button
+                  onClick={() => toggleStep(index)}
+                  className="flex items-center justify-between w-full px-6 py-4 text-left focus:outline-none"
+                  aria-expanded={activeIndex === index}
+                  aria-controls={`step-desc-${index}`}
+                >
+                  <div className="flex items-center space-x-4">
+                    {step.icon}
+                    <span className="text-lg font-semibold text-gray-900">{step.title}</span>
+                  </div>
+                  <div className="text-gray-600">
+                    {activeIndex === index ? <FaChevronUp size={20} /> : <FaChevronDown size={20} />}
+                  </div>
+                </button>
+                <AnimatePresence initial={false}>
+                   {activeIndex === index && (
+                    <motion.div
+                      key="content"
+                      initial={{ height: 0 }}
+                      animate={{ height: 'auto' }}
+                      exit={{ height: 0 }}
+                      transition={{ duration: 0.4, ease: 'easeInOut' }}
+                      className="overflow-hidden"
+                    >
+                    <div className="px-6 py-4 text-gray-700">
+                     {step.description}
+                    </div>
+                   </motion.div>
+                     )}
+                 </AnimatePresence>
+                    </div>
+              ))}
           </div>
-        </div>
+        </section>
       </div>
 
-      {/* Feature Grid Section */}
-      <div className="w-full py-16 animate-slideUp">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="p-8 rounded-2xl bg-gradient-to-br from-[#1e293b] to-[#0f172a] 
-          border border-gray-800 hover:border-[#be185d] transition-all duration-300 
-          group hover:scale-105 hover:shadow-2xl hover:shadow-[#be185d]/20 animate-fadeIn">
-            <div className="flex flex-col h-full">
-              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-[#be185d]">Data Visualization</h3>
-              <p className="text-gray-300 mb-4">Transform your Excel data into interactive charts, graphs, and visual representations for better insights.</p>
-            </div>
-          </div>
-          <div className="p-8 rounded-2xl bg-gradient-to-br from-[#1e293b] to-[#0f172a] 
-          border border-gray-800 hover:border-[#be185d] transition-all duration-300 
-          group hover:scale-105 hover:shadow-2xl hover:shadow-[#be185d]/20 animate-fadeIn">
-            <div className="flex flex-col h-full">
-              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-[#be185d]">Real-time Analysis</h3>
-              <p className="text-gray-300 mb-4">Get instant analysis of your data with our powerful processing engine.</p>
-            </div>
-          </div>
-          <div className="p-8 rounded-2xl bg-gradient-to-br from-[#1e293b] to-[#0f172a] 
-          border border-gray-800 hover:border-[#be185d] transition-all duration-300 
-          group hover:scale-105 hover:shadow-2xl hover:shadow-[#be185d]/20 animate-fadeIn">
-            <div className="flex flex-col h-full">
-              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-[#be185d]">Custom Reports</h3>
-              <p className="text-gray-300 mb-4">Generate customized reports and export them in multiple formats for your needs.</p>
-            </div>
-          </div>
-          <div className="p-8 rounded-2xl bg-gradient-to-br from-[#1e293b] to-[#0f172a] 
-          border border-gray-800 hover:border-[#be185d] transition-all duration-300 
-          group hover:scale-105 hover:shadow-2xl hover:shadow-[#be185d]/20 animate-fadeIn">
-            <div className="flex flex-col h-full">
-              <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-[#be185d]">Collaboration</h3>
-              <p className="text-gray-300 mb-4">Share your analysis with team members and work together in real-time.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer Section */}
-      <footer className="w-full bg-[#0f172a] border-t border-gray-800 animate-fadeIn">
-        <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <h4 className="text-white font-bold text-lg">Quick Links</h4>
-              <ul className="space-y-2">
-                <li><a href="/" className="text-gray-300 hover:text-[#be185d]">Home</a></li>
-                <li><a href="/about" className="text-gray-300 hover:text-[#be185d]">About</a></li>
-                <li><a href="/features" className="text-gray-300 hover:text-[#be185d]">Features</a></li>
-                <li><a href="/pricing" className="text-gray-300 hover:text-[#be185d]">Pricing</a></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-white font-bold text-lg">Resources</h4>
-              <ul className="space-y-2">
-                <li><a href="/docs" className="text-gray-300 hover:text-[#be185d]">Documentation</a></li>
-                <li><a href="/tutorials" className="text-gray-300 hover:text-[#be185d]">Tutorials</a></li>
-                <li><a href="/api" className="text-gray-300 hover:text-[#be185d]">API Reference</a></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-white font-bold text-lg">Legal</h4>
-              <ul className="space-y-2">
-                <li><a href="/privacy" className="text-gray-300 hover:text-[#be185d]">Privacy Policy</a></li>
-                <li><a href="/terms" className="text-gray-300 hover:text-[#be185d]">Terms of Service</a></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="text-white font-bold text-lg">Contact</h4>
-              <ul className="space-y-2">
-                <li className="text-gray-300">support@excelanalyzer.com</li>
-                <li className="text-gray-300">+1 (555) 123-4567</li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-12 pt-8 border-t border-gray-800">
-            <p className="text-center text-gray-400">
-              © {new Date().getFullYear()} Excel Analyzer. All rights reserved.
+      {/* Footer */}
+      <footer className="bg-gradient-to-r from-indigo-700 via-purple-800 to-blue-900 text-gray-100 py-10">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+          <div className="mb-6 md:mb-0">
+            <h3 className="text-xl font-semibold mb-2">Excel Analyzer</h3>
+            <p className="text-sm max-w-xs">
+              Your go-to platform for transforming Excel data into actionable insights.
             </p>
           </div>
+          <div className="flex space-x-6">
+            <a href="#" className="hover:text-yellow-400 transition-colors">About</a>
+            <a href="#" className="hover:text-yellow-400 transition-colors">Features</a>
+            <a href="#" className="hover:text-yellow-400 transition-colors">Contact</a>
+            <a href="#" className="hover:text-yellow-400 transition-colors">Privacy Policy</a>
+          </div>
+        </div>
+        <div className="mt-8 text-center text-sm text-gray-300">
+          &copy; {new Date().getFullYear()} Excel Analyzer. All rights reserved.
         </div>
       </footer>
-
-      {/* Add these styles at the end of your component */}
-      <style jsx>{`
-        @keyframes gradient {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 15s ease infinite;
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.8s ease-out forwards;
-        }
-
-        .animate-slideUp {
-          animation: slideUp 0.8s ease-out forwards;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 };
